@@ -21,9 +21,13 @@ CPP = @g++
 LD = @g++
 MD = @mkdir
 RM = @rm -f
+CP = @cp
+
 DEVLIBS = -L/usr/lib/arm-linux-gnueabihf
 
 EMULATOR = $(TARGET)$(EXE)
+
+DISTRIB_EMULATOR = distrib/mame4all/$(EMULATOR)
 
 DEFS =  -DLSB_FIRST -DALIGN_INTS -DALIGN_SHORTS -DINLINE="static __inline" -Dasm="__asm__ __volatile__" -DMMUHACK -DMAME_UNDERCLOCK -DMAME_FASTSOUND -DENABLE_AUTOFIRE -DBIGCASE
 # -DMAME_MEMINLINE
@@ -42,11 +46,12 @@ LDFLAGS = $(CFLAGS) -s
 LIBS = -lSDL2 -lm -lpthread -lX11 -lasound
 
 OBJ = obj_$(TARGET)_$(MAMEOS)
+
 OBJDIRS = $(OBJ) $(OBJ)/cpu $(OBJ)/sound $(OBJ)/$(MAMEOS) \
 	$(OBJ)/drivers $(OBJ)/machine $(OBJ)/vidhrdw $(OBJ)/sndhrdw \
 	$(OBJ)/zlib
 
-all:	maketree $(EMULATOR)
+all:	maketree $(DISTRIB_EMULATOR)
 
 # include the various .mak files
 include src/core.mak
@@ -61,14 +66,13 @@ CDEFS = $(DEFS) $(COREDEFS) $(CPUDEFS) $(SOUNDDEFS)
 $(EMULATOR): $(COREOBJS) $(OSOBJS) $(DRVOBJS)
 	$(LD) $(LDFLAGS) $(COREOBJS) $(OSOBJS) $(LIBS) $(DRVOBJS) -o $@
 	
+$(DISTRIB_EMULATOR) : $(EMULATOR)	
+	$(CP) $(EMULATOR) distrib/mame4all/$(EMULATOR)
+	
 $(EMULATOR).dge: $(FEOBJS)
 	@echo Linking $@ ...
 	$(LD) $(LDFLAGS) $(FEOBJS) $(LIBS) -o $@
-ifeq "$(OSTYPE)" "msys"
-	$(MV) $(EMULATOR).dge distrib/mame4all/$(EMULATOR).dge.exe
-else
 	$(MV) $(EMULATOR).dge distrib/mame4all/$(EMULATOR).dge
-endif
 
 $(OBJ)/%.o: src/%.c
 	@echo Compiling $<...
