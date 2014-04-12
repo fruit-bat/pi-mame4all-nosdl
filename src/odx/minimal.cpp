@@ -309,12 +309,17 @@ printf("Audio stopped.\n");
 void odx_sound_play(void *buff, int len)
 {
   SDL_LockMutex(sndlock);
-	
-	if( odx_sndlen+len > odx_audio_buffer_len ) {
-		// Overrun 
-		odx_sndlen = 0;
-		SDL_UnlockMutex(sndlock);
-		return;
+	int i = 0;
+	while( odx_sndlen+len > odx_audio_buffer_len ) {
+    if(i++ > 10) {
+    	// Overrun 
+      odx_sndlen = 0;
+      SDL_UnlockMutex(sndlock);
+      return;
+    }
+    SDL_UnlockMutex(sndlock);
+    usleep(2000);
+    SDL_LockMutex(sndlock);
 	}
 
 	if( odx_audio_spec.userdata ) {
