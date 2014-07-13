@@ -439,7 +439,7 @@ void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int
   }
   printf("Found software driver at index %d\n", sdlRendererIndex);  
   
-  sdlWindow = SDL_CreateWindow("Mame4Cubie", 50, 50, 1152, 768, SDL_WINDOW_RESIZABLE);
+  sdlWindow = SDL_CreateWindow("Mame4Cubie", 50, 50, 1152, 768, SDL_WINDOW_BORDERLESS|SDL_WINDOW_FULLSCREEN|SDL_WINDOW_RESIZABLE);
   printf("Created window\n"); 
      
   sdlRenderer = SDL_CreateRenderer(sdlWindow, sdlRendererIndex, 0);

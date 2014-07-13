@@ -393,7 +393,9 @@ static int show_options(char *game)
 		/* Show currently selected item */
 		odx_gamelist_text_out(x_Pos-16,y_PosTop+(selected_option*10)+10," >");
 
-		odx_video_flip(); 
+		COL_UnlockTexture(colRenderer);
+		COL_RenderCopyAndPresent(colRenderer);
+
 		ExKey=odx_joystick_press();
 		if(ExKey & OD_DOWN){
 			selected_option++;
@@ -550,7 +552,6 @@ static void select_game(char *emu, char *game)
 		game_list_view(&last_game_selected);
 		COL_UnlockTexture(colRenderer);
 		COL_RenderCopyAndPresent(colRenderer);
-		//odx_video_flip();
 
 		ExKey=odx_joystick_press();
 
@@ -877,7 +878,8 @@ signed int get_romdir(char *result) {
 				}
 			}
 			COL_UnlockTexture(colRenderer);
-			odx_video_flip();
+			COL_RenderCopyAndPresent(colRenderer);
+
 			// Catch input
 			ExKey=odx_joystick_press();
 		printf("Got key %d\n", ExKey);	
