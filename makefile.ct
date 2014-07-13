@@ -51,7 +51,7 @@ OBJDIRS = $(OBJ) $(OBJ)/cpu $(OBJ)/sound $(OBJ)/$(MAMEOS) \
 	$(OBJ)/drivers $(OBJ)/machine $(OBJ)/vidhrdw $(OBJ)/sndhrdw \
 	$(OBJ)/zlib
 
-all:	maketree $(DISTRIB_EMULATOR)
+all:	maketree $(DISTRIB_EMULATOR) $(DISTRIB_EMULATOR).dge
 
 # include the various .mak files
 include src/core.mak
@@ -69,10 +69,12 @@ $(EMULATOR): $(COREOBJS) $(OSOBJS) $(DRVOBJS)
 $(DISTRIB_EMULATOR) : $(EMULATOR)	
 	$(CP) $(EMULATOR) distrib/mame4all/$(EMULATOR)
 	
+$(DISTRIB_EMULATOR).dge : $(EMULATOR).dge	
+	$(CP) $(EMULATOR).dge distrib/mame4all/$(EMULATOR).dge
+	
 $(EMULATOR).dge: $(FEOBJS)
 	@echo Linking $@ ...
 	$(LD) $(LDFLAGS) $(FEOBJS) $(LIBS) -o $@
-	$(MV) $(EMULATOR).dge distrib/mame4all/$(EMULATOR).dge
 
 $(OBJ)/%.o: src/%.c
 	@echo Compiling $<...

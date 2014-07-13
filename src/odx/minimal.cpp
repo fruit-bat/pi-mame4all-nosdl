@@ -261,18 +261,19 @@ unsigned int odx_joystick_read(unsigned int index)
 		if (SDL_JoystickGetButton(joystick,4))  { res |=  OD_R;  }  // BUTTON R
 		if (SDL_JoystickGetButton(joystick,5))  { res |=  OD_L;  }  // BUTTON L
 
-		if (SDL_JoystickGetButton(joystick,6))  { res |=  OD_START;  } // START
+		if (SDL_JoystickGetButton(joystick,6))  { res |=  OD_START; } // START
 		if (SDL_JoystickGetButton(joystick,7)) { res |=  OD_SELECT; } // SELECT
 	}
- // printf("keystat %#010x %d\n", res, SDL_JoystickGetButton(odx_joyanalog,7));   
+  // printf("keystat %#010x \n", res);   
 	return res;
 }
 
 unsigned int odx_joystick_press ()
 {
 	unsigned int ExKey=0;
-	while ((odx_joystick_read(0) | odx_keyboard_read()) == 0 ) { usleep (10000); }
-	while (!(ExKey=(odx_joystick_read(0) | odx_keyboard_read()) == 0 )) { usleep (10000); }
+	for(int i = 0; i< 20; ++i) if  ((odx_joystick_read(0) | odx_keyboard_read()) != 0 ) { usleep (10000); }
+	while ((ExKey=(odx_joystick_read(0) | odx_keyboard_read())) == 0 ) { usleep (10000); }
+//	printf("keystat %#010x \n", ExKey);  
 	return ExKey;
 }
 
@@ -281,6 +282,13 @@ unsigned long odx_timer_read(void)
 	struct timeval tval;
 	gettimeofday(&tval, 0);
 	return ((tval.tv_sec*1000000)+tval.tv_usec);
+}
+
+void odx_timer_delay(unsigned long ticks)
+{
+        unsigned long ini=odx_timer_read();
+        usleep(ticks);
+        while (odx_timer_read()-ini<ticks) usleep(ticks - (odx_timer_read()-ini));
 }
 
 void odx_sound_volume(int vol)
@@ -696,8 +704,8 @@ void odx_gamelist_text_out(int x, int y, char *eltexto)
 		odx_text(address,x+1,y+1,texto,0, pitch);
 	odx_text(address,x,y,texto,255, pitch);
     
-	COL_UnlockTexture(colRenderer);
-  COL_RenderCopyAndPresent(colRenderer);  
+//	COL_UnlockTexture(colRenderer);
+//  COL_RenderCopyAndPresent(colRenderer);  
 }
 
 /* Variadic functions guide found at http://www.unixpapa.com/incnote/variadic.html */

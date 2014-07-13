@@ -10,7 +10,7 @@
 
 #include "odx_frontend_list.h"
 
-#define BMP_SIZE ((SCREEN_WIDTH*SCREEN_HEIGHT)+(256*4)+54)
+#define BMP_SIZE ((SCREEN_WIDTH*SCREEN_HEIGHT*4)+(256*4)+54)
 
 #define COMPATCORES 1
 
@@ -27,7 +27,7 @@ char playgame[16] = "builtinn\0";
 char mamedir[512];
 
 int odx_freq=336;       /* default dingoo Mhz */ 
-int odx_video_depth=16; /* MAME video depth */
+int odx_video_depth=32; /* MAME video depth */
 int odx_video_aspect=2; /* Scale best*/
 int odx_video_sync=0;   /* No vsync */
 int odx_frameskip=-1;
@@ -44,34 +44,44 @@ int master_volume = 100;
 
 char romdir[512];
 
-static void blit_bmp_8bpp(unsigned char *out, unsigned char *in) 
+static void blit_bmp_8bpp(unsigned char *in) 
 {
-//	SDL_FillRect( layer, NULL, 0 );
+	printf("blit_bmp_8bpp not implemented yet!\n");
+	
+    void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
+	register unsigned int *dest=(unsigned int *)k;
+	
 	SDL_RWops *rw = SDL_RWFromMem(in, BMP_SIZE);
 	SDL_Surface *temp = SDL_LoadBMP_RW(rw, 1);
-	SDL_Surface *image;
-	image = SDL_DisplayFormat(temp);
+	register unsigned int *src= (unsigned int *)temp->pixels;
+
+	for(int y = 0; y < SCREEN_HEIGHT; ++y) {
+		for(int x = 0; x < SCREEN_WIDTH; ++x) {
+			int s = *src++;
+			*dest++ = 
+			  ((s & 0xff000000) >> 8) | 
+			  ((s & 0xff0000) >> 8) |
+			  ((s & 0xff00) >> 8 ) ;
+		}
+	}
+
 	SDL_FreeSurface(temp);
-	
-	// Display image
- 	//SDL_BlitSurface(image, 0, layer, 0);
-	SDL_BlitSurface(image, 0, video, 0);
-	SDL_FreeSurface(image);
 }
 
-static void _screen(void) {
+static void odx_intro_screen(void) {
 printf("odx_intro_screen(void)\n");  
   
 	char name[256];
 	FILE *f;
 	odx_video_flip();
 	sprintf(name,"skins/splash.bmp");
+	
 	f=fopen(name,"rb");
 	if (f) {
-		fread(splash_bmp,1,77878,f);
+		fread(splash_bmp,1,BMP_SIZE,f);
 		fclose(f);
 	}
-	blit_bmp_8bpp(od_screen8,splash_bmp);
+	blit_bmp_8bpp(splash_bmp);
 	odx_gamelist_text_out(1,230,build_version);
 	odx_video_flip();
 	odx_joystick_press();
@@ -79,7 +89,7 @@ printf("odx_intro_screen(void)\n");
 	sprintf(name,"skins/menu.bmp");
 	f=fopen(name,"rb");
 	if (f) {
-		fread(menu_bmp,1,77878,f);
+		fread(menu_bmp,1,BMP_SIZE,f);
 		fclose(f);
 	}
 }
@@ -174,7 +184,7 @@ static void game_list_view(int *pos) {
 	int screen_x = 38;
 
 	/* Draw background image */
-	blit_bmp_8bpp(od_screen8,menu_bmp);
+	blit_bmp_8bpp(menu_bmp);
 
 	/* draw text */
 	odx_gamelist_text_out( 4, 30,"Select ROM");
@@ -251,7 +261,7 @@ static char *game_list_description (int index)
 
 static int show_options(char *game)
 {
-	unsigned long ExKey=0;
+	unsigned int ExKey=0;
 	int selected_option=0;
 	int x_Pos = 41;
 	int y_PosTop = 58;
@@ -275,7 +285,7 @@ static int show_options(char *game)
 		y_Pos = y_PosTop;
 	
 		/* Draw background image */
-		blit_bmp_8bpp(od_screen8,menu_bmp);
+		blit_bmp_8bpp(menu_bmp);
 
 		/* draw text */
 		odx_gamelist_text_out( 4, 30,"Game Options");
@@ -386,8 +396,7 @@ static int show_options(char *game)
 		odx_gamelist_text_out(x_Pos-16,y_PosTop+(selected_option*10)+10," >");
 
 		odx_video_flip(); 
-		while (odx_joystick_read()) { odx_timer_delay(100); }
-		while(!(ExKey=odx_joystick_read())) { }
+		ExKey=odx_joystick_press();
 		if(ExKey & OD_DOWN){
 			selected_option++;
 			selected_option = selected_option % options_count;
@@ -529,7 +538,7 @@ static void odx_exit(char *param)
 static void select_game(char *emu, char *game)
 {
 
-	unsigned long ExKey;
+	unsigned int ExKey;
 
 	/* No Selected game */
 	strcpy(game,"builtinn");
@@ -541,12 +550,10 @@ static void select_game(char *emu, char *game)
 	while(1)
 	{
 		game_list_view(&last_game_selected);
-		odx_video_flip();
+		COL_RenderCopyAndPresent(colRenderer);
+		//odx_video_flip();
 
-		if( (odx_joystick_read())) odx_timer_delay(100);
-
-		while(!(ExKey=odx_joystick_read())) { 
-		}
+		ExKey=odx_joystick_press();
 
 		if ((ExKey & OD_L) && (ExKey & OD_R) ) { odx_exit(""); }
 		if (ExKey & OD_UP) last_game_selected--;
@@ -782,7 +789,7 @@ int sort_function(const void *src_str_ptr, const void *dest_str_ptr) {
 }
 
 signed int get_romdir(char *result) {
-	unsigned long ExKey;
+	unsigned int ExKey;
 	
 	char current_dir_name[512];
 	DIR *current_dir;
@@ -851,14 +858,14 @@ signed int get_romdir(char *result) {
 		char print_buffer[81];
 
 		while(repeat) {
-			blit_bmp_8bpp(od_screen8,menu_bmp);
+			// TODO Lock
+			blit_bmp_8bpp(menu_bmp);
 			
 			odx_gamelist_text_out( 182, 30,"Select a ROM directory");
 			odx_gamelist_text_out( 4, 215,current_dir_short );
 			odx_gamelist_text_out( 4, 230,"A=Enter dir START=Select dir");
 			odx_gamelist_text_out( 280, 230,"B=Quit");
 			odx_gamelist_text_out( 264,2,build_version);
-			
 			for(i = 0, current_filedir_number = i + current_filedir_scroll_value; i < FILE_LIST_ROWS; i++, current_filedir_number++) {
 #define CHARLEN ((ODX_SCREEN_WIDTH/6)-2)
 				if(current_filedir_number < num_filedir) {
@@ -870,18 +877,17 @@ signed int get_romdir(char *result) {
 					odx_gamelist_text_out(4, 31+((i + 2) * 8), print_buffer );
 				}
 			}
+			COL_UnlockTexture(colRenderer);
 			odx_video_flip();
-
 			// Catch input
-			while ( (odx_joystick_read())) odx_timer_delay(100);
-			while(!(ExKey=odx_joystick_read())) { 
-			}
-
+			ExKey=odx_joystick_press();
+		printf("Got key %d\n", ExKey);	
 			/* L + R = Exit */
 			if ((ExKey & OD_L) && (ExKey & OD_R) ) { odx_exit(""); }
 		
 			// START - choose directory
 			if (ExKey & OD_START) { 
+printf("Start\n");				
 				repeat = 0;
 				return_value = 0;
 				strcpy(result,current_dir_name);
@@ -889,14 +895,18 @@ signed int get_romdir(char *result) {
 			
 			// A - choose file or enter directory
 			if (ExKey & OD_A) { 
+printf("Choose\n");				
 				if (filedir_list[current_filedir_selection].type == 1)  { // so it's a directory
 					repeat = 0;
+printf("Folder %s\n", filedir_list[current_filedir_selection].name);				
+					
 					chdir(filedir_list[current_filedir_selection].name);
 				}
 			}
 
 			// B - exit or back to previous menu
 			if (ExKey & OD_B) { 
+printf("Back\n");				
 				return_value = -1;
 				repeat = 0;
 			}

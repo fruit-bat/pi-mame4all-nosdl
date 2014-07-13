@@ -30,8 +30,8 @@
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 */
-#define ODX_SCREEN_WIDTH 640
-#define ODX_SCREEN_HEIGHT 480
+#define ODX_SCREEN_WIDTH 320
+#define ODX_SCREEN_HEIGHT 240
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 
@@ -79,7 +79,7 @@ extern unsigned int odx_joystick_press();
 
 extern void odx_sound_volume(int vol);
 
-extern void odx_timer_delay(unsigned int ticks);
+extern void odx_timer_delay(unsigned long ticks);
 extern unsigned long odx_timer_read(void);
 
 extern void odx_sound_play(void *buff, int len);

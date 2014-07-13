@@ -10,5 +10,7 @@ OSOBJS = $(OBJ)/odx/fastmem.o $(OBJ)/odx/minimal.o \
 	$(OBJ)/odx/col.o
 	
 	
-FEOBJS = $(OBJ)/odx/fastmem.o $(OBJ)/odx/minimal.o $(OBJ)/odx/odx_frontend.o
+FEOBJS = $(OBJ)/odx/fastmem.o $(OBJ)/odx/minimal.o $(OBJ)/odx/odx_frontend.o \
+	$(OBJ)/odx/ve.o $(OBJ)/odx/disp.o  \
+	$(OBJ)/odx/col.o
 
