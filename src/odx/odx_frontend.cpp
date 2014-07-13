@@ -46,8 +46,6 @@ char romdir[512];
 
 static void blit_bmp_8bpp(unsigned char *in) 
 {
-	printf("blit_bmp_8bpp not implemented yet!\n");
-	
     void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
 	register unsigned int *dest=(unsigned int *)k;
 	
@@ -550,6 +548,7 @@ static void select_game(char *emu, char *game)
 	while(1)
 	{
 		game_list_view(&last_game_selected);
+		COL_UnlockTexture(colRenderer);
 		COL_RenderCopyAndPresent(colRenderer);
 		//odx_video_flip();
 
