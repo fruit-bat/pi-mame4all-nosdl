@@ -293,6 +293,7 @@ void odx_timer_delay(unsigned long ticks)
 
 void odx_sound_volume(int vol)
 {
+printf("odx_sound_volume(void)\n");
  	if( vol < 0 ) vol = 0;
  	if( vol > 100 ) vol = 100;
 
@@ -403,13 +404,14 @@ printf("Starting audio...\n");
 
 void odx_sound_thread_stop(void)
 {
-	SDL_PauseAudio(1);
-printf("Audio stopped.\n");
-	SDL_DestroyMutex(sndlock);
-	SDL_CloseAudio();
-	SDL_QuitSubSystem(SDL_INIT_AUDIO);
-
 	if( odx_audio_spec.userdata ) {
+printf("odx_sound_thread_stop(void)\n");
+		SDL_PauseAudio(1);
+printf("Audio stopped.\n");
+		SDL_DestroyMutex(sndlock);
+		SDL_CloseAudio();
+		SDL_QuitSubSystem(SDL_INIT_AUDIO);
+
 		free( odx_audio_spec.userdata );
 		odx_audio_spec.userdata = NULL;
 	}
@@ -497,12 +499,10 @@ void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int
 
 void odx_deinit(void)
 {
-	SDL_PauseAudio(1);
-printf("Audio stopped.\n");
+printf("odx_deinit(void).\n");	
 
-	SDL_DestroyMutex(sndlock);
-	SDL_CloseAudio();
-  COL_DestroyRenderer(colRenderer);
+	odx_sound_thread_stop();
+	COL_DestroyRenderer(colRenderer);
 	SDL_QuitSubSystem(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_JOYSTICK);
 }
 
