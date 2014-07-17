@@ -31,7 +31,7 @@ SDL_Texture *sdlTexture;
 COL_Renderer *colRenderer;
 
 SDL_Event			event;
-const unsigned char 			*keystates;
+const unsigned char 	*keystates = 0;
 
 volatile unsigned int	odx_palette[512];
 unsigned int			odx_palette_rgb[256];
@@ -202,30 +202,17 @@ unsigned int odx_keyboard_read()
   
 	keystates = SDL_GetKeyboardState(NULL);
 
-	// Key touch management
-	if (keystates[SDL_SCANCODE_UP] == SDL_PRESSED)  res |=  OD_UP; // UP
-	if (keystates[SDL_SCANCODE_DOWN] == SDL_PRESSED) res |=  OD_DOWN; // DOWN
-	if (keystates[SDL_SCANCODE_LEFT] == SDL_PRESSED) res |=  OD_LEFT; // LEFT
-	if (keystates[SDL_SCANCODE_RIGHT] == SDL_PRESSED) res |=  OD_RIGHT; // RIGHT
+	if ( (keystates[SDL_SCANCODE_Q] == SDL_PRESSED) ) {
+		odx_deinit();
+		exit(0);
+	}
 
-	if (keystates[SDL_SCANCODE_LCTRL] == SDL_PRESSED) { res |=  OD_A;  }  // BUTTON A
-	if (keystates[SDL_SCANCODE_LALT] == SDL_PRESSED) { res |=  OD_B; }  // BUTTON B
+	return res;
+}
 
-	if (keystates[SDL_SCANCODE_SPACE] == SDL_PRESSED) { res |=  OD_X;  }  // BUTTON X
-	if (keystates[SDL_SCANCODE_LSHIFT] == SDL_PRESSED)  { res |=  OD_Y;  }   // BUTTON Y
-
-	if (keystates[SDL_SCANCODE_BACKSPACE] == SDL_PRESSED)  { res |=  OD_R;  }  // BUTTON R
-	if (keystates[SDL_SCANCODE_TAB] == SDL_PRESSED)  { res |=  OD_L;  }  // BUTTON L
-
-	if ( (keystates[SDL_SCANCODE_RETURN] == SDL_PRESSED) )  { res |=  OD_START;  } // START
-	if ( (keystates[SDL_SCANCODE_ESCAPE] == SDL_PRESSED) ) { res |=  OD_SELECT; } // SELECT
-  
- 	if ( (keystates[SDL_SCANCODE_Q] == SDL_PRESSED) ) {
-    odx_deinit();
-    exit(0);
-  }
-  
-  return res;
+bool odx_key_pressed(int keycode) {
+	if(keystates == 0) return false;
+	return keystates[keycode] == SDL_PRESSED;
 }
 
 unsigned int odx_joystick_read(unsigned int index)

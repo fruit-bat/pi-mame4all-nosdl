@@ -83,7 +83,7 @@ static struct KeyboardInfo keylist[] =
 	{ ";",          	KEY_COLON,          		KEYCODE_COLON },
 	{ ":",          	KEY_QUOTE,          		KEYCODE_QUOTE },
 	{ "\\",         	KEY_BACKSLASH,      		KEYCODE_BACKSLASH },
-	{ "<",          	KEY_BACKSLASH2,     		KEYCODE_BACKSLASH2 },
+//	{ "<",          	KEY_BACKSLASH2,     		KEYCODE_BACKSLASH2 },
 	{ ",",          	KEY_COMMA,          		KEYCODE_COMMA },
 	{ ".",          	KEY_STOP,           		KEYCODE_STOP },
 	{ "/",          	KEY_SLASH,          		KEYCODE_SLASH },
@@ -161,9 +161,9 @@ static void updatekeyboard(void)
 	/* Pause */
 	key[KEY_P]=((ExKey1 & OD_L) && (ExKey1 & OD_R) && (!(ExKey1 & OD_START)));
 	/* FPS */
-  key[KEY_F11]=(((ExKey1 & OD_L) && (ExKey1 & OD_START)) || ((ExKey1 & OD_R) && (ExKey1 & OD_SELECT)));
+	key[KEY_F11]=(((ExKey1 & OD_L) && (ExKey1 & OD_START)) || ((ExKey1 & OD_R) && (ExKey1 & OD_SELECT)));
 	/* Profiler */
-  key[KEY_LSHIFT]=((ExKey1 & OD_L) && (ExKey1 & OD_START));
+	key[KEY_LSHIFT]=((ExKey1 & OD_L) && (ExKey1 & OD_START));
 }
 
 int osd_is_key_pressed(int keycode)
@@ -189,7 +189,7 @@ int osd_is_key_pressed(int keycode)
 		return res;
 	}
 
-	return key[keycode];
+	return key[keycode] || odx_key_pressed(keycode);
 }
 
 
