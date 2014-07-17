@@ -44,6 +44,69 @@ int master_volume = 100;
 
 char romdir[512];
 
+inline bool isJoyPressed_A(const int ExKey) {
+	if(ExKey & OD_A) printf("Joy A\n");
+	return ExKey & OD_A;
+}
+
+inline bool isJoyPressed_B(const int ExKey) {
+	if(ExKey & OD_B) printf("Joy B\n");
+	return ExKey & OD_B;
+}
+
+inline bool isJoyPressed_X(const int ExKey) {
+	if(ExKey & OD_X) printf("Joy X\n");
+	return ExKey & OD_X;
+}
+
+inline bool isJoyPressed_Y(const int ExKey) {
+	if(ExKey & OD_Y) printf("Joy Y\n");
+	return ExKey & OD_Y;
+}
+
+inline bool isJoyPressed_START(const int ExKey) {
+	if(ExKey & OD_START) printf("Joy START\n");
+	return ExKey & OD_START;
+}
+
+inline bool isJoyPressed_SELECT(const int ExKey) {
+	if(ExKey & OD_SELECT) printf("Joy SELECT\n");
+	return ExKey & OD_SELECT;
+}
+
+inline bool isJoyPressed_L(const int ExKey) {
+	if(ExKey & OD_L) printf("Joy L\n");
+	return ExKey & OD_L;
+}
+
+inline bool isJoyPressed_R(const int ExKey) {
+	if(ExKey & OD_R) printf("Joy R\n");
+	return ExKey & OD_R;
+}
+
+inline bool isJoyPressed_LEFT(const int ExKey) {
+	if(ExKey & OD_LEFT) printf("Joy LEFT\n");
+	return ExKey & OD_LEFT;
+}
+
+inline bool isJoyPressed_RIGHT(const int ExKey) {
+	if(ExKey & OD_RIGHT) printf("Joy RIGHT\n");
+	return ExKey & OD_RIGHT;
+}
+
+inline bool isJoyPressed_UP(const int ExKey) {
+	if(ExKey & OD_UP) printf("Joy UP\n");
+	return ExKey & OD_UP;
+}
+
+inline bool isJoyPressed_DOWN(const int ExKey) {
+	if(ExKey & OD_DOWN) printf("Joy DOWN\n");
+	return ExKey & OD_DOWN;
+}
+
+
+
+
 static void blit_bmp_8bpp(unsigned char *in) 
 {
     void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
@@ -397,16 +460,16 @@ static int show_options(char *game)
 		COL_RenderCopyAndPresent(colRenderer);
 
 		ExKey=odx_joystick_press();
-		if(ExKey & OD_DOWN){
+		if(isJoyPressed_DOWN(ExKey)){
 			selected_option++;
 			selected_option = selected_option % options_count;
 		}
-		else if(ExKey & OD_UP){
+		else if(isJoyPressed_UP(ExKey)){
 			selected_option--;
 			if(selected_option<0)
 				selected_option = options_count - 1;
 		}
-		else if(ExKey & OD_LEFT || ExKey & OD_RIGHT)
+		else if(isJoyPressed_LEFT(ExKey) || isJoyPressed_RIGHT(ExKey))
 		{
 			switch(selected_option) {
 			case 0:
@@ -418,7 +481,7 @@ static int show_options(char *game)
 				}
 				break;
 			case 1:
-				if(ExKey & OD_RIGHT)
+				if(isJoyPressed_RIGHT(ExKey))
 				{
 					odx_video_aspect++;
 					if (odx_video_aspect>9)
@@ -437,7 +500,7 @@ static int show_options(char *game)
 					odx_video_sync=-1;
 				break;
 			case 3:
-				if(ExKey & OD_RIGHT)
+				if(isJoyPressed_RIGHT(ExKey))
 				{
 					odx_frameskip ++;
 					if (odx_frameskip>11)
@@ -451,7 +514,7 @@ static int show_options(char *game)
 				}
 				break;
 			case 4:
-				if(ExKey & OD_RIGHT)
+				if(isJoyPressed_RIGHT(ExKey))
 				{
 					odx_sound ++;
 					if (odx_sound>15)
@@ -466,7 +529,7 @@ static int show_options(char *game)
 				break;
 			case 5:
 				/* "CPU Clock" */
-				if(ExKey & OD_RIGHT)
+				if(isJoyPressed_RIGHT(ExKey))
 				{
 					odx_clock_cpu += 10; /* Add 10% */
 					if (odx_clock_cpu > 200) /* 200% is the max */
@@ -481,7 +544,7 @@ static int show_options(char *game)
 				break;
 			case 6:
 				/* "Audio Clock" */
-				if(ExKey & OD_RIGHT)
+				if(isJoyPressed_RIGHT(ExKey))
 				{
 					odx_clock_sound += 10; /* Add 10% */
 					if (odx_clock_sound > 200) /* 200% is the max */
@@ -502,7 +565,7 @@ static int show_options(char *game)
 			}
 		}
 
-		if ((ExKey & OD_A) || (ExKey & OD_START) || (ExKey & OD_SELECT)) 
+		if ((isJoyPressed_A(ExKey)) || (isJoyPressed_START(ExKey)) || (isJoyPressed_SELECT(ExKey))) 
 		{
 			/* Write game configuration */
 			sprintf(text,"%s/frontend/%s.cfg",mamedir,game);
@@ -517,7 +580,7 @@ static int show_options(char *game)
 			/* Selected game will be run */
 			return 1;
 		}
-		else if ((ExKey & OD_X) || (ExKey & OD_Y) || (ExKey & OD_B))
+		else if ((isJoyPressed_X(ExKey)) || (isJoyPressed_Y(ExKey)) || (isJoyPressed_B(ExKey)))
 		{
 			/* Return To Menu */
 			return 0;
@@ -533,6 +596,8 @@ static void odx_exit(char *param)
 	remove(text);
 	/* sync(); */
 	odx_deinit();
+	
+	exit(0);
 }
 
 static void select_game(char *emu, char *game)
@@ -555,13 +620,13 @@ static void select_game(char *emu, char *game)
 
 		ExKey=odx_joystick_press();
 
-		if ((ExKey & OD_L) && (ExKey & OD_R) ) { odx_exit(""); }
-		if (ExKey & OD_UP) last_game_selected--;
-		if (ExKey & OD_DOWN) last_game_selected++;
-		if (ExKey & OD_LEFT) last_game_selected-=22; // ALEK 21
-		if (ExKey & OD_RIGHT) last_game_selected+=22; // ALEK 21
+		if ((isJoyPressed_L(ExKey)) && (isJoyPressed_R(ExKey)) ) { odx_exit(""); }
+		if (isJoyPressed_UP(ExKey)) last_game_selected--;
+		if (isJoyPressed_DOWN(ExKey)) last_game_selected++;
+		if (isJoyPressed_LEFT(ExKey)) last_game_selected-=22; // ALEK 21
+		if (isJoyPressed_RIGHT(ExKey)) last_game_selected+=22; // ALEK 21
 
-		if ((ExKey & OD_A) || (ExKey & OD_START) )
+		if ((isJoyPressed_A(ExKey)) || (isJoyPressed_START(ExKey)) )
 		{
 			/* Select the game */
 			game_list_select(last_game_selected, game, emu);
@@ -884,10 +949,10 @@ signed int get_romdir(char *result) {
 			ExKey=odx_joystick_press();
 		printf("Got key %d\n", ExKey);	
 			/* L + R = Exit */
-			if ((ExKey & OD_L) && (ExKey & OD_R) ) { odx_exit(""); }
+			if ((isJoyPressed_L(ExKey)) && (isJoyPressed_R(ExKey)) ) { odx_exit(""); }
 		
 			// START - choose directory
-			if (ExKey & OD_START) { 
+			if (isJoyPressed_START(ExKey)) { 
 printf("Start\n");				
 				repeat = 0;
 				return_value = 0;
@@ -895,7 +960,7 @@ printf("Start\n");
 			}
 			
 			// A - choose file or enter directory
-			if (ExKey & OD_A) { 
+			if (isJoyPressed_A(ExKey)) { 
 printf("Choose\n");				
 				if (filedir_list[current_filedir_selection].type == 1)  { // so it's a directory
 					repeat = 0;
@@ -906,14 +971,14 @@ printf("Folder %s\n", filedir_list[current_filedir_selection].name);
 			}
 
 			// B - exit or back to previous menu
-			if (ExKey & OD_B) { 
+			if (isJoyPressed_B(ExKey)) { 
 printf("Back\n");				
 				return_value = -1;
 				repeat = 0;
 			}
 
 			// UP - arrow up
-			if (ExKey & OD_UP) { 
+			if (isJoyPressed_UP(ExKey)) { 
 				if(current_filedir_selection) {
 					current_filedir_selection--;
 					if(current_filedir_in_scroll == 0) {
@@ -930,7 +995,7 @@ printf("Back\n");
 			}
 
 			//DOWN - arrow down
-			if (ExKey & OD_DOWN) { 
+			if (isJoyPressed_DOWN(ExKey)) { 
 				if(current_filedir_selection < (num_filedir - 1)) {
 					current_filedir_selection++;
 					if(current_filedir_in_scroll == (FILE_LIST_ROWS - 1)) {

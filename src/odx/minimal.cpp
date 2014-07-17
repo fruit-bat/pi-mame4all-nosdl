@@ -128,8 +128,6 @@ void odx_updateWindowPosition() {
 
 unsigned int odx_keyboard_read()
 {
- 	unsigned int res=0;
-	
 	while(SDL_PollEvent(&event)) {
     switch(event.type) {
       case SDL_WINDOWEVENT:
@@ -202,11 +200,20 @@ unsigned int odx_keyboard_read()
   
 	keystates = SDL_GetKeyboardState(NULL);
 
-	if ( (keystates[SDL_SCANCODE_Q] == SDL_PRESSED) ) {
+	if (keystates[SDL_SCANCODE_Q] == SDL_PRESSED) {
 		odx_deinit();
 		exit(0);
 	}
 
+	// Keys for file chooser only...
+	unsigned int res = 0;
+	if(keystates[SDL_SCANCODE_LEFT] == SDL_PRESSED) res |= OD_LEFT;
+	if(keystates[SDL_SCANCODE_RIGHT] == SDL_PRESSED)res |= OD_RIGHT;
+	if(keystates[SDL_SCANCODE_UP] == SDL_PRESSED) res |= OD_UP;
+	if(keystates[SDL_SCANCODE_DOWN] == SDL_PRESSED) res |= OD_DOWN;
+	if(keystates[SDL_SCANCODE_RETURN] == SDL_PRESSED) res |= OD_A;
+	if(keystates[SDL_SCANCODE_ESCAPE] == SDL_PRESSED) res |= OD_B;
+	
 	return res;
 }
 
@@ -270,13 +277,14 @@ unsigned long odx_timer_read(void)
 	gettimeofday(&tval, 0);
 	return ((tval.tv_sec*1000000)+tval.tv_usec);
 }
-
+/*
 void odx_timer_delay(unsigned long ticks)
 {
         unsigned long ini=odx_timer_read();
         usleep(ticks);
         while (odx_timer_read()-ini<ticks) usleep(ticks - (odx_timer_read()-ini));
 }
+*/
 
 void odx_sound_volume(int vol)
 {
@@ -304,18 +312,18 @@ printf("Audio stopped.\n");
 
 void odx_sound_play(void *buff, int len)
 {
-  SDL_LockMutex(sndlock);
+	SDL_LockMutex(sndlock);
 	int i = 0;
 	while( odx_sndlen+len > odx_audio_buffer_len ) {
-    if(i++ > 10) {
-    	// Overrun 
-      odx_sndlen = 0;
-      SDL_UnlockMutex(sndlock);
-      return;
-    }
-    SDL_UnlockMutex(sndlock);
-    usleep(2000);
-    SDL_LockMutex(sndlock);
+		if(i++ > 10) {
+			// Overrun 
+		  odx_sndlen = 0;
+		  SDL_UnlockMutex(sndlock);
+		  return;
+		}
+		SDL_UnlockMutex(sndlock);
+		usleep(2000);
+		SDL_LockMutex(sndlock);
 	}
 
 	if( odx_audio_spec.userdata ) {
@@ -332,7 +340,7 @@ static void odx_sound_callback(void *data, Uint8 *stream, int len)
 	
 	if( odx_sndlen < len ) {
 		memcpy( stream, data, odx_sndlen );
-    memset( stream+odx_sndlen, 0, len-odx_sndlen);
+		memset( stream+odx_sndlen, 0, len-odx_sndlen);
 		odx_sndlen = 0;
 		SDL_UnlockMutex(sndlock);
 		return;
@@ -721,14 +729,14 @@ static void odx_text_log(char *texto)
 		odx_clear_video();
 	}
   
-  void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
+	void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
 
 	unsigned int *address=(unsigned int *)k;
 
 	odx_text(address,0,logy,texto,255, pitch); 	
   
 	COL_UnlockTexture(colRenderer);
-  COL_RenderCopyAndPresent(colRenderer);  
+	COL_RenderCopyAndPresent(colRenderer);  
   
 	logy+=8;
 	if(logy>239) logy=0;

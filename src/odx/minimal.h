@@ -80,7 +80,7 @@ extern unsigned int odx_joystick_press();
 
 extern void odx_sound_volume(int vol);
 
-extern void odx_timer_delay(unsigned long ticks);
+//extern void odx_timer_delay(unsigned long ticks);
 extern unsigned long odx_timer_read(void);
 
 extern void odx_sound_play(void *buff, int len);
