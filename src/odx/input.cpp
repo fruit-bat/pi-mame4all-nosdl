@@ -121,49 +121,47 @@ static struct KeyboardInfo keylist[] =
 	{ 0, 0, 0 }	/* end of table */
 };
 
-
 /* return a list of all available keys */
 const struct KeyboardInfo *osd_get_key_list(void)
 {
 	return keylist;
 }
 
-static int key[KEY_MAX];
+// TODO PS - At some point these should probably be removed to allow handling by mame key-mapping
+bool is_key_pressed_special(int keycode) {
+	
+	switch(keycode) {
+		
+		case KEY_1: return ( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) );
+		/* Start B == Joystick UP + Start Button */
+		case KEY_2: return ( ( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && (ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey2 & OD_START));
+		/* Start C == Joystick RIGHT + Start Button */
+		case KEY_3: return ( ( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && (ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey3 & OD_START));
+		/* Start D == Joystick DOWN + Start Button */
+		case KEY_4: return ( ( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && (ExKey1 & OD_DOWN) ) || (ExKey4 & OD_START));
+		/* Coin A == Select Button */
+		case KEY_5: return ( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) );
+		/* Coin B == Select Button + Joystick UP */	
+		case KEY_6: return ( ( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && (ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey2 & OD_SELECT));
+		/* Coin C == Select Button + Joystick RIGHT */
+		case KEY_7: return ( ( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && (ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey3 & OD_SELECT));
+		/* Coin D == Select Button + Joystick DOWN */
+		case KEY_8: return ( ( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && (ExKey1 & OD_DOWN) ) || (ExKey4 & OD_SELECT));
 
-static void updatekeyboard(void)
-{
-	/* Initialize keyboard to not pressed */
-	memset(key, 0, sizeof(int)*KEY_MAX);
-
-	/* Start A == Start Button */
-	key[KEY_1]=( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) );
-	/* Start B == Joystick UP + Start Button */
-	key[KEY_2]=( ( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && (ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey2 & OD_START));
-	/* Start C == Joystick RIGHT + Start Button */
-	key[KEY_3]=( ( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && (ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey3 & OD_START));
-	/* Start D == Joystick DOWN + Start Button */
-	key[KEY_4]=( ( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && (ExKey1 & OD_DOWN) ) || (ExKey4 & OD_START));
-	/* Coin A == Select Button */
-	key[KEY_5]=( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) );
-	/* Coin B == Select Button + Joystick UP */	
-	key[KEY_6]=( ( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && (ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey2 & OD_SELECT));
-	/* Coin C == Select Button + Joystick RIGHT */
-	key[KEY_7]=( ( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && (ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey3 & OD_SELECT));
-	/* Coin D == Select Button + Joystick DOWN */
-	key[KEY_8]=( ( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && (ExKey1 & OD_DOWN) ) || (ExKey4 & OD_SELECT));
-
-	/* MAME Menu */
-	key[KEY_TAB]=(ExKey1 & OD_START) && (ExKey1 & OD_SELECT);
-	/* Enter */
-	key[KEY_ENTER]=(ExKey1 & OD_B);
-	/* Esc */
-	key[KEY_ESC]=((ExKey1 & OD_L) && (ExKey1 & OD_R) && (ExKey1 & OD_START));
-	/* Pause */
-	key[KEY_P]=((ExKey1 & OD_L) && (ExKey1 & OD_R) && (!(ExKey1 & OD_START)));
-	/* FPS */
-	key[KEY_F11]=(((ExKey1 & OD_L) && (ExKey1 & OD_START)) || ((ExKey1 & OD_R) && (ExKey1 & OD_SELECT)));
-	/* Profiler */
-	key[KEY_LSHIFT]=((ExKey1 & OD_L) && (ExKey1 & OD_START));
+		/* MAME Menu */
+		case KEY_TAB: return (ExKey1 & OD_START) && (ExKey1 & OD_SELECT);
+		/* Enter */
+		case KEY_ENTER: return (ExKey1 & OD_B);
+		/* Esc */
+		case KEY_ESC: return ((ExKey1 & OD_L) && (ExKey1 & OD_R) && (ExKey1 & OD_START));
+		/* Pause */
+		case KEY_P: return ((ExKey1 & OD_L) && (ExKey1 & OD_R) && (!(ExKey1 & OD_START)));
+		/* FPS */
+		case KEY_F11: return (((ExKey1 & OD_L) && (ExKey1 & OD_START)) || ((ExKey1 & OD_R) && (ExKey1 & OD_SELECT)));
+		/* Profiler */
+		case KEY_LSHIFT: return ((ExKey1 & OD_L) && (ExKey1 & OD_START));
+	}
+	return false;
 }
 
 int osd_is_key_pressed(int keycode)
@@ -175,13 +173,13 @@ int osd_is_key_pressed(int keycode)
 		static int pressed,counter;
 		int res;
 
-		res = key[KEY_PAUSE] ^ pressed;
+		res = is_key_pressed_special(keycode) ^ pressed;
 		if (res)
 		{
 			if (counter > 0)
 			{
 				if (--counter == 0)
-					pressed = key[KEY_PAUSE];
+					pressed = is_key_pressed_special(keycode);
 			}
 			else counter = 10;
 		}
@@ -189,7 +187,7 @@ int osd_is_key_pressed(int keycode)
 		return res;
 	}
 
-	return key[keycode] || odx_key_pressed(keycode);
+	return is_key_pressed_special(keycode) || odx_key_pressed(keycode);
 }
 
 
@@ -522,7 +520,6 @@ void osd_poll_joysticks(void)
 {
   ExKey1 = odx_joystick_read(0) | odx_keyboard_read();
   ExKey2 = odx_joystick_read(1);
-	updatekeyboard();
 }
 
 /* return a value in the range -128 .. 128 (yes, 128, not 127) */
@@ -591,14 +588,6 @@ void osd_led_w(int led,int on) {
 
 void msdos_init_input (void)
 {
-	int i;
-	
-	/* Initialize keyboard to not pressed */
-	for (i = 0;i < KEY_MAX;i++)
-	{
-		key[i]=0;
-	}	
-
 	if (joystick == JOY_TYPE_NONE)
 		logerror("Joystick not found\n");
 	else
