@@ -716,29 +716,12 @@ void *osd_fopen (const char *game, const char *filename, int filetype, int _writ
 	case OSD_FILETYPE_NVRAM:
 		if( !found )
 		{
-			sprintf (name, "%s/%s.nv", nvdir, gamename);
+			sprintf (name, "%s%s/%s.nv", mdir, nvdir, gamename);
 			f->type = kPlainFile;
 			f->file = fopen (name, _write ? "wb" : "rb");
 			found = f->file != 0;
 		}
 
-		if( !found )
-		{
-			/* try with a .zip directory (if ZipMagic is installed) */
-			sprintf (name, "%s.zip/%s.nv", nvdir, gamename);
-			f->type = kPlainFile;
-			f->file = fopen (name, _write ? "wb" : "rb");
-			found = f->file != 0;
-		}
-
-		if( !found )
-		{
-			/* try with a .zif directory (if ZipFolders is installed) */
-			sprintf (name, "%s.zif/%s.nv", nvdir, gamename);
-			f->type = kPlainFile;
-			f->file = fopen (name, _write ? "wb" : "rb");
-			found = f->file != 0;
-		}
 		break;
 
 	case OSD_FILETYPE_HIGHSCORE:
@@ -746,25 +729,7 @@ void *osd_fopen (const char *game, const char *filename, int filetype, int _writ
 		{
 			if( !found )
 			{
-				sprintf (name, "%s/%s.hi", hidir, gamename);
-				f->type = kPlainFile;
-				f->file = fopen (name, _write ? "wb" : "rb");
-				found = f->file != 0;
-			}
-
-			if( !found )
-			{
-				/* try with a .zip directory (if ZipMagic is installed) */
-				sprintf (name, "%s.zip/%s.hi", hidir, gamename);
-				f->type = kPlainFile;
-				f->file = fopen (name, _write ? "wb" : "rb");
-				found = f->file != 0;
-			}
-
-			if( !found )
-			{
-				/* try with a .zif directory (if ZipFolders is installed) */
-				sprintf (name, "%s.zif/%s.hi", hidir, gamename);
+				sprintf (name, "%s%s/%s.hi", mdir, hidir, gamename);
 				f->type = kPlainFile;
 				f->file = fopen (name, _write ? "wb" : "rb");
 				found = f->file != 0;
@@ -778,50 +743,16 @@ void *osd_fopen (const char *game, const char *filename, int filetype, int _writ
 		f->type = kPlainFile;
 		f->file = fopen (name, _write ? "wb" : "rb");
 		found = f->file != 0;
-		
-		if( !found )
-		{
-			/* try with a .zip directory (if ZipMagic is installed) */
-			sprintf (name, "%s.zip/%s.cfg", cfgdir, gamename);
-			f->type = kPlainFile;
-			f->file = fopen (name, _write ? "wb" : "rb");
-			found = f->file != 0;
-		}
 
-		if( !found )
-		{
-			/* try with a .zif directory (if ZipFolders is installed) */
-			sprintf (name, "%s.zif/%s.cfg", cfgdir, gamename);
-			f->type = kPlainFile;
-			f->file = fopen (name, _write ? "wb" : "rb");
-			found = f->file != 0;
-		}
 		break;
 
 	case OSD_FILETYPE_INPUTLOG:
-		sprintf (name, "%s/%s.inp", inpdir, gamename);
+		sprintf (name, "%s%s/%s.inp", mdir, inpdir, gamename);
 		f->type = kPlainFile;
 		f->file = fopen (name, _write ? "wb" : "rb");
 		found = f->file != 0;
 
-        if( !found )
-		{
-			/* try with a .zip directory (if ZipMagic is installed) */
-			sprintf (name, "%s.zip/%s.cfg", inpdir, gamename);
-			f->type = kPlainFile;
-			f->file = fopen (name, _write ? "wb" : "rb");
-			found = f->file != 0;
-		}
-
-		if( !found )
-		{
-			/* try with a .zif directory (if ZipFolders is installed) */
-			sprintf (name, "%s.zif/%s.cfg", inpdir, gamename);
-			f->type = kPlainFile;
-			f->file = fopen (name, _write ? "wb" : "rb");
-			found = f->file != 0;
-        }
-
+ 
 		if( !_write )
 		{
 			char file[256];
@@ -843,23 +774,10 @@ void *osd_fopen (const char *game, const char *filename, int filetype, int _writ
         break;
 
 	case OSD_FILETYPE_STATE:
-		sprintf (name, "%s/%s.sta", stadir, gamename);
+		sprintf (name, "%s%s/%s.sta", mdir, stadir, gamename);
 		f->file = fopen (name, _write ? "wb" : "rb");
 		found = !(f->file == 0);
-		if( !found )
-		{
-			/* try with a .zip directory (if ZipMagic is installed) */
-			sprintf (name, "%s.zip/%s.sta", stadir, gamename);
-			f->file = fopen (name, _write ? "wb" : "rb");
-			found = !(f->file == 0);
-		}
-		if( !found )
-		{
-			/* try with a .zif directory (if ZipFolders is installed) */
-			sprintf (name, "%s.zif/%s.sta", stadir, gamename);
-			f->file = fopen (name, _write ? "wb" : "rb");
-			found = !(f->file == 0);
-		}
+
 		break;
 
 	case OSD_FILETYPE_ARTWORK:
@@ -869,33 +787,16 @@ void *osd_fopen (const char *game, const char *filename, int filetype, int _writ
 			logerror("osd_fopen: type %02x write not supported\n",filetype);
             break;
 		}
-		sprintf (name, "%s/%s", artworkdir, filename);
+		sprintf (name, "%s%s/%s", mdir, artworkdir, filename);
 		f->type = kPlainFile;
 		f->file = fopen (name, _write ? "wb" : "rb");
 		found = f->file != 0;
-		if( !found )
-		{
-			/* try with a .zip directory (if ZipMagic is installed) */
-			sprintf (name, "%s.zip/%s.png", artworkdir, filename);
-			f->type = kPlainFile;
-			f->file = fopen (name, _write ? "wb" : "rb");
-			found = f->file != 0;
-		}
-
-		if( !found )
-		{
-			/* try with a .zif directory (if ZipFolders is installed) */
-			sprintf (name, "%s.zif/%s.png", artworkdir, filename);
-			f->type = kPlainFile;
-			f->file = fopen (name, _write ? "wb" : "rb");
-			found = f->file != 0;
-        }
 
 		if( !found )
 		{
 			char file[256], *extension;
 			sprintf(file, "%s", filename);
-            sprintf(name, "%s/%s", artworkdir, filename);
+            sprintf(name, "%s%s/%s", mdir, artworkdir, filename);
             extension = strrchr(name, '.');
 			if( extension )
 				strcpy (extension, ".zip");
@@ -914,7 +815,7 @@ void *osd_fopen (const char *game, const char *filename, int filetype, int _writ
 			}
 			if( !found )
 			{
-				sprintf(name, "%s/%s.zip", artworkdir, game);
+				sprintf(name, "%s%s/%s.zip", mdir, artworkdir, game);
 				LOG(("Trying %s in %s\n", file, name));
 				if( cache_stat (name, &stat_buffer) == 0 )
 				{
@@ -931,7 +832,7 @@ void *osd_fopen (const char *game, const char *filename, int filetype, int _writ
         break;
 
 	case OSD_FILETYPE_MEMCARD:
-		sprintf (name, "%s/%s", memcarddir, filename);
+		sprintf (name, "%s%s/%s", mdir, memcarddir, filename);
 		f->type = kPlainFile;
 		f->file = fopen (name, _write ? "wb" : "rb");
 		found = f->file != 0;
@@ -945,7 +846,7 @@ void *osd_fopen (const char *game, const char *filename, int filetype, int _writ
 			break;
 		}
 
-		sprintf (name, "%s/%s.png", screenshotdir, filename);
+		sprintf (name, "%s%s/%s.png", mdir, screenshotdir, filename);
 		f->type = kPlainFile;
 		f->file = fopen (name, _write ? "wb" : "rb");
 		found = f->file != 0;
