@@ -29,7 +29,7 @@ char *cfgdir, *nvdir, *hidir, *inpdir, *stadir;
 char *memcarddir, *artworkdir, *screenshotdir;
 char *cheatdir;	/* Steph */
 
-char *mdir; /* Alek */
+char mdir[512]; /* Alek */
 
 char *alternate_name;				   /* for "-romdir" */
 
@@ -773,11 +773,12 @@ void *osd_fopen (const char *game, const char *filename, int filetype, int _writ
 		break;
 
     case OSD_FILETYPE_CONFIG:
-		sprintf (name, "%s/%s.cfg", cfgdir, gamename);
+		sprintf (name, "%s%s/%s.cfg", mdir, cfgdir, gamename);
+		
 		f->type = kPlainFile;
 		f->file = fopen (name, _write ? "wb" : "rb");
 		found = f->file != 0;
-
+		
 		if( !found )
 		{
 			/* try with a .zip directory (if ZipMagic is installed) */

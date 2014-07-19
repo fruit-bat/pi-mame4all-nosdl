@@ -65,7 +65,6 @@ static int analog_previous_x[OSD_MAX_JOY_ANALOG], analog_previous_y[OSD_MAX_JOY_
 int seq_pressed_with_autofire(struct InputPort *in, InputSeq *code);
 #endif
 
-
 /***************************************************************************
 
   Configuration load/save
@@ -517,11 +516,9 @@ static void save_default_keys(void)
 {
 	void *f;
 
-
 	if ((f = osd_fopen("default",0,OSD_FILETYPE_CONFIG,1)) != 0)
 	{
 		int i;
-
 
 		/* write header */
 		osd_fwrite(f,MAMEDEFSTRING_V8,8);
@@ -587,7 +584,6 @@ static void input_port_write(void *f,struct InputPort *in)
 	writeword(f,in->default_value);
 	seq_write(f,&in->seq);
 }
-
 
 int load_input_port_settings(void)
 {
@@ -822,7 +818,6 @@ getout:
 
 /***************************************************************************/
 /* Save */
-
 void save_input_port_settings(void)
 {
 	void *f;

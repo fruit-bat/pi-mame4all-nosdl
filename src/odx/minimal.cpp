@@ -128,6 +128,8 @@ void odx_updateWindowPosition() {
 
 unsigned int odx_keyboard_read()
 {
+	unsigned int res = 0;
+
 	while(SDL_PollEvent(&event)) {
     switch(event.type) {
       case SDL_WINDOWEVENT:
@@ -184,8 +186,8 @@ unsigned int odx_keyboard_read()
               break;
           case SDL_WINDOWEVENT_CLOSE:
               printf("Window %d closed\n", window_event->windowID);
-              odx_deinit();
-              exit(0);
+              res |= OD_EXIT;
+              break;
           default:
               printf("Window %d got unknown event %d\n",
                       window_event->windowID, window_event->event);
@@ -206,7 +208,6 @@ unsigned int odx_keyboard_read()
 	}
 
 	// Keys for file chooser only...
-	unsigned int res = 0;
 	if(keystates[SDL_SCANCODE_LEFT] == SDL_PRESSED) res |= OD_LEFT;
 	if(keystates[SDL_SCANCODE_RIGHT] == SDL_PRESSED)res |= OD_RIGHT;
 	if(keystates[SDL_SCANCODE_UP] == SDL_PRESSED) res |= OD_UP;
@@ -436,7 +437,9 @@ void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int
   }
   printf("Found software driver at index %d\n", sdlRendererIndex);  
   
-  sdlWindow = SDL_CreateWindow("Mame4Cubie", 50, 50, 1152, 768, SDL_WINDOW_BORDERLESS|SDL_WINDOW_FULLSCREEN|SDL_WINDOW_RESIZABLE);
+  bool fullscreen = true;
+  
+  sdlWindow = SDL_CreateWindow("Mame4Cubie", 50, 50, 1152, 768, SDL_WINDOW_RESIZABLE | (fullscreen ? SDL_WINDOW_BORDERLESS|SDL_WINDOW_FULLSCREEN : 0));
   printf("Created window\n"); 
      
   sdlRenderer = SDL_CreateRenderer(sdlWindow, sdlRendererIndex, 0);

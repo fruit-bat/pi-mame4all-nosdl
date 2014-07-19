@@ -37,7 +37,7 @@ extern char *artworkdir, *screenshotdir, *alternate_name;
 
 extern char *cheatdir;
 
-extern char *mdir;
+extern char mdir[512];
 
 /*from video.c flag for 15.75KHz modes (req. for 15.75KHz Arcade Monitor Modes)*/
 extern int arcade_mode;
@@ -236,8 +236,6 @@ void parse_cmdline (int argc, char **argv, int game_index)
 	int i;
 	char *tmpstr;
 	
-	char text[512];
-	
 	mame_argc = argc;
 	mame_argv = argv;
 	game = game_index;
@@ -313,14 +311,16 @@ void parse_cmdline (int argc, char **argv, int game_index)
 	resolution  = get_string ("config", "resolution", NULL, "auto");
 
 	/* set default subdirectories */
-	mdir       = get_string ("directory", "mamepath",   NULL, ".");
-	sprintf(text,"%s/nvram",mdir);   nvdir      = get_string ("directory", "nvram",   NULL, text);
-	sprintf(text,"%s/hi",mdir);      hidir      = get_string ("directory", "hi",      NULL, text);
-	sprintf(text,"%s/cfg",mdir);     cfgdir     = get_string ("directory", "cfg",     NULL, text);
-	sprintf(text,"%s/snap",mdir);    screenshotdir = get_string ("directory", "snap",     NULL, text);
-	sprintf(text,"%s/memcard",mdir); memcarddir = get_string ("directory", "memcard", NULL, text);
-	sprintf(text,"%s/sta",mdir);     stadir     = get_string ("directory", "sta",     NULL, text);
-	sprintf(text,"%s/artwork",mdir); artworkdir = get_string ("directory", "artwork", NULL, text);
+	sprintf(mdir, "%s/.mame4all/", getenv("HOME"));	
+	
+	strcpy(mdir, get_string ("directory", "mamepath",   NULL, mdir));	
+	nvdir      = get_string ("directory", "nvram",   NULL, "nvram");
+	hidir      = get_string ("directory", "hi",      NULL, "hi");
+	cfgdir     = get_string ("directory", "cfg",     NULL, "cfg");
+	screenshotdir = get_string ("directory", "snap",     NULL, "snap");
+	memcarddir = get_string ("directory", "memcard", NULL, "memcard");
+	stadir     = get_string ("directory", "sta",     NULL, "sta");
+	artworkdir = get_string ("directory", "artwork", NULL, "artwork");
 
 	cheatdir = get_string ("directory", "cheat", NULL, ".");
 

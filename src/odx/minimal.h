@@ -48,7 +48,7 @@ enum  { OD_UP=1<<0,         OD_LEFT=1<<1,       OD_DOWN=1<<2,  OD_RIGHT=1<<3,
 	/* Virtual keys * SELECT + 'button' */
         OD_SEL_START=1<<12,  OD_SEL_SELECT=1<<13,    OD_SEL_L=1<<14,    OD_SEL_R=1<<15,
         OD_SEL_A=1<<16,       OD_SEL_B=1<<17,        OD_SEL_X=1<<18,    OD_SEL_Y=1<<19,
-        OD_ADVANCE=1<<20
+        OD_ADVANCE=1<<20,    OD_EXIT=1<<21
 };
 
 #define OD_KEY_MAX 32

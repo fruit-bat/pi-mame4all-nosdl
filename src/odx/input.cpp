@@ -153,7 +153,7 @@ bool is_key_pressed_special(int keycode) {
 		/* Enter */
 		case KEY_ENTER: return (ExKey1 & OD_B);
 		/* Esc */
-		case KEY_ESC: return ((ExKey1 & OD_L) && (ExKey1 & OD_R) && (ExKey1 & OD_START));
+		case KEY_ESC: return (ExKey1 & OD_EXIT) || ((ExKey1 & OD_L) && (ExKey1 & OD_R) && (ExKey1 & OD_START));
 		/* Pause */
 		case KEY_P: return ((ExKey1 & OD_L) && (ExKey1 & OD_R) && (!(ExKey1 & OD_START)));
 		/* FPS */
