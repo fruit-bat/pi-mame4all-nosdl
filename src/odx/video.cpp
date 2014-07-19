@@ -289,7 +289,14 @@ printf("set visible area %d-%d %d-%d\n",min_x,max_x,min_y,max_y);
 	/* setup xmultiply to handle SVGA driver's (possible) double width */
 	xmultiply = 1;
 	ymultiply = 1;
+    
+    gfx_display_lines = visheight;
+	gfx_display_columns = viswidth;
 
+	gfx_xoffset = 0;
+	gfx_yoffset = 0;
+
+/*
 	if (video_scale == 2)
 	{
 		gfx_display_lines = visheight;
@@ -318,7 +325,7 @@ printf("set visible area %d-%d %d-%d\n",min_x,max_x,min_y,max_y);
 			if (gfx_display_lines > gfx_height / ymultiply)
 				gfx_display_lines = gfx_height / ymultiply;
 	}
-
+*/
 	skiplinesmin = min_y;
 	skiplinesmax = visheight - gfx_display_lines + min_y;
 	skipcolumnsmin = min_x;
