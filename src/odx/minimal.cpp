@@ -278,14 +278,6 @@ unsigned long odx_timer_read(void)
 	gettimeofday(&tval, 0);
 	return ((tval.tv_sec*1000000)+tval.tv_usec);
 }
-/*
-void odx_timer_delay(unsigned long ticks)
-{
-        unsigned long ini=odx_timer_read();
-        usleep(ticks);
-        while (odx_timer_read()-ini<ticks) usleep(ticks - (odx_timer_read()-ini));
-}
-*/
 
 void odx_sound_volume(int vol)
 {
@@ -413,7 +405,7 @@ printf("Audio stopped.\n");
 	}
 }
 
-void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int Hz)
+void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int Hz, bool fullscreen)
 {
 
 	/* All keys unpressed. */
@@ -436,9 +428,7 @@ void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int
     }
   }
   printf("Found software driver at index %d\n", sdlRendererIndex);  
-  
-  bool fullscreen = false;
-  
+   
   sdlWindow = SDL_CreateWindow("Mame4Cubie", 50, 50, 1152, 768, SDL_WINDOW_RESIZABLE | (fullscreen ? SDL_WINDOW_BORDERLESS|SDL_WINDOW_FULLSCREEN : 0));
   printf("Created window\n"); 
      
@@ -467,12 +457,10 @@ void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int
     }     
   }
   
-//	SDL_EventState(SDL_ACTIVEEVENT,SDL_IGNORE);
 	SDL_EventState(SDL_MOUSEMOTION,SDL_IGNORE);
 	SDL_EventState(SDL_MOUSEBUTTONDOWN,SDL_IGNORE);
 	SDL_EventState(SDL_MOUSEBUTTONUP,SDL_IGNORE);
 	SDL_EventState(SDL_SYSWMEVENT,SDL_IGNORE);
-//	SDL_EventState(SDL_VIDEORESIZE,SDL_IGNORE);
 	SDL_EventState(SDL_USEREVENT,SDL_IGNORE);
 	SDL_ShowCursor(SDL_DISABLE);
 
@@ -524,7 +512,7 @@ void odx_set_video_mode(int bpp,int width,int height)
                                
   printf("Created COL texture format %d\n",  SDL_PIXELFORMAT_ARGB8888);
 
-	odx_clear_video();
+  odx_clear_video();
 }
 
 void odx_clear_video() {
@@ -701,9 +689,6 @@ void odx_gamelist_text_out(int x, int y, char *eltexto)
 	if (texto[0]!='-')
 		odx_text(address,x+1,y+1,texto,0, pitch);
 	odx_text(address,x,y,texto,255, pitch);
-    
-//	COL_UnlockTexture(colRenderer);
-//  COL_RenderCopyAndPresent(colRenderer);  
 }
 
 /* Variadic functions guide found at http://www.unixpapa.com/incnote/variadic.html */

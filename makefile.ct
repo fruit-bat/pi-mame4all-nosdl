@@ -64,6 +64,7 @@ include src/$(MAMEOS)/$(MAMEOS).mak
 CDEFS = $(DEFS) $(COREDEFS) $(CPUDEFS) $(SOUNDDEFS)
 
 $(EMULATOR): $(COREOBJS) $(OSOBJS) $(DRVOBJS)
+	@echo Linking $@ ...
 	$(LD) $(LDFLAGS) $(COREOBJS) $(OSOBJS) $(LIBS) $(DRVOBJS) -o $@
 	
 $(DISTRIB_EMULATOR) : $(EMULATOR)	

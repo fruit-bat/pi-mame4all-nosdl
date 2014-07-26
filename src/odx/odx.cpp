@@ -87,6 +87,8 @@ int main (int argc, char **argv)
 	int res, i, j = 0, game_index;
    	char *playbackname = NULL;
 	int use_fame=0;
+    bool fullscreen=false;
+    bool frontend=false;
    	extern int video_scale;
 	extern int video_border;
 	extern int video_aspect;
@@ -113,6 +115,10 @@ int main (int argc, char **argv)
 			video_scale=3;
 		if (strcasecmp(argv[i],"-fastscale") == 0)
 			video_scale=4;
+		if (strcasecmp(argv[i],"-fullscreen") == 0)
+			fullscreen=true;
+		if (strcasecmp(argv[i],"-frontend") == 0)
+			frontend=true;
 		if (strcasecmp(argv[i],"-border") == 0)
 			video_border=1;
 		if (strcasecmp(argv[i],"-aspect") == 0)
@@ -130,7 +136,7 @@ int main (int argc, char **argv)
 	}
 
 	/* Initialization */
-	odx_init(1000,16,44100,16,0,60);
+	odx_init(1000,16,44100,16,0,60,fullscreen);
 
 	/* check for frontend options */
 	res = frontend_help (argc, argv);
@@ -139,7 +145,7 @@ int main (int argc, char **argv)
 	if (res != 1234)
 	{
 		odx_deinit();
-		execl("mame.dge", "mame.dge", "cache", NULL);
+		if(frontend) execl("mame.dge", "mame.dge", "cache", NULL);
 		exit (res);
 	}
 
@@ -366,7 +372,7 @@ int main (int argc, char **argv)
 
    	odx_deinit();
 
-    execl("mame.dge", "mame.dge", "cache", NULL);
+    if(frontend) execl("mame.dge", "mame.dge", "cache", NULL);
 
 	exit (res);
 }

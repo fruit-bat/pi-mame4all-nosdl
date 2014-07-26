@@ -19,6 +19,7 @@ char build_version[] = "GCW0 V1.1";
 static unsigned char splash_bmp[BMP_SIZE];
 static unsigned char menu_bmp[BMP_SIZE];
 static void odx_exit(char *param);
+static bool fullscreen=false;
 
 int game_num_avail=0;
 static int last_game_selected=0;
@@ -668,6 +669,12 @@ void execute_game (char *playemu, char *playgame)
 	sprintf(str[i],"%d",odx_freq);
 	args[n]=str[i]; i++; n++;*/
 
+    args[n]="-frontend"; n++;
+    
+    if(fullscreen) 
+    {
+ 		args[n]="-fullscreen"; n++;
+    }
 	/* odx_video_depth */
 	if (odx_video_depth==8)
 	{
@@ -1063,12 +1070,18 @@ int main (int argc, char **argv)
 	char text[512], curDir[512];
 	FILE *f;
 
+	for (int i = 1;i < argc;i++) 
+	{
+		if (strcasecmp(argv[i],"-fullscreen") == 0)
+			fullscreen=true;
+	}
+    
 	/* get initial home directory */
 	gethomedir(mamedir,"mame4all");
 	strcpy(romdir,"");
 	
 	/* Open dingux Initialization */
-	odx_init(1000,16,44100,16,0,60);
+	odx_init(1000,16,44100,16,0,60, fullscreen);
 
 	/* Show intro screen */
 	odx_intro_screen();
