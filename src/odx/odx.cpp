@@ -145,7 +145,7 @@ int main (int argc, char **argv)
 	if (res != 1234)
 	{
 		odx_deinit();
-		if(frontend) execl("mame.dge", "mame.dge", "cache", NULL);
+    if(frontend) execl("mame.dge", "mame.dge", "cache", fullscreen ? "-fullscreen" : NULL, NULL);
 		exit (res);
 	}
 
@@ -372,7 +372,7 @@ int main (int argc, char **argv)
 
    	odx_deinit();
 
-    if(frontend) execl("mame.dge", "mame.dge", "cache", NULL);
+    if(frontend) execl("mame.dge", "mame.dge", "cache", fullscreen ? "-fullscreen" : NULL, NULL);
 
 	exit (res);
 }

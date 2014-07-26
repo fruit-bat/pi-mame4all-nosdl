@@ -101,7 +101,6 @@ extern bool odx_key_pressed(int keycode);
 
 extern int abs_x, abs_y, abs_z;
 
-#define odx_video_wait_vsync()  { }
 #define odx_video_setpalette()  { }
 
 #endif

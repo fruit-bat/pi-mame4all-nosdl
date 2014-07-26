@@ -285,7 +285,7 @@ void parse_cmdline (int argc, char **argv, int game_index)
 	/* read sound configuration */
 	soundcard           = get_int  ("config", "soundcard",  NULL, -1);
 	options.use_emulated_ym3812 = !get_bool ("config", "ym3812opl",  NULL,  0);
-	options.samplerate = get_int  ("config", "samplerate", "sr", 22050);
+	options.samplerate = get_int  ("config", "samplerate", "sr", 44100);
 	if (options.samplerate < 5000) options.samplerate = 5000;
 	if (options.samplerate > 44100) options.samplerate = 44100;
 	usestereo           = get_bool ("config", "stereo",  NULL,  0);

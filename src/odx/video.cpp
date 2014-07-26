@@ -853,7 +853,20 @@ void osd_update_video_and_audio(struct osd_bitmap *bitmap)
 		//if (throttle)
 		//{
 			profiler_mark(PROFILER_IDLE);
-
+            
+            
+			{
+				static TICKER last;
+				do
+				{
+                    vsync();
+					curr = ticker();
+                    usleep(2000);
+				} while (TICKS_PER_SEC / (curr - last) > video_fps * 110 /100);
+				last = curr;
+			}
+            
+            /*
 				TICKER target;
 
 				curr = ticker();
@@ -862,11 +875,11 @@ void osd_update_video_and_audio(struct osd_bitmap *bitmap)
 				{
 					do
 					{
-            usleep(2000);
+                        usleep(2000);
 						curr = ticker();
 					} while ((curr < target) && (target-curr<TICKS_PER_SEC));
 				}
-      
+      */
       /*
 			if (video_sync)
 			{

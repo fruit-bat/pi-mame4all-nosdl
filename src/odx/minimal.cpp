@@ -25,6 +25,8 @@
 
 #include "minimal.h"
 
+extern "C" void disp_wait_for_frame();
+
 SDL_Window *sdlWindow;
 SDL_Renderer *sdlRenderer;
 SDL_Texture *sdlTexture;
@@ -214,6 +216,7 @@ unsigned int odx_keyboard_read()
 	if(keystates[SDL_SCANCODE_DOWN] == SDL_PRESSED) res |= OD_DOWN;
 	if(keystates[SDL_SCANCODE_RETURN] == SDL_PRESSED) res |= OD_A;
 	if(keystates[SDL_SCANCODE_ESCAPE] == SDL_PRESSED) res |= OD_B;
+	if(keystates[SDL_SCANCODE_SPACE] == SDL_PRESSED) res |= OD_START;
 	
 	return res;
 }
@@ -279,6 +282,11 @@ unsigned long odx_timer_read(void)
 	return ((tval.tv_sec*1000000)+tval.tv_usec);
 }
 
+void odx_video_wait_vsync(void) 
+{
+    disp_wait_for_frame();
+}
+
 void odx_sound_volume(int vol)
 {
 printf("odx_sound_volume(void)\n");
@@ -308,7 +316,8 @@ void odx_sound_play(void *buff, int len)
 	SDL_LockMutex(sndlock);
 	int i = 0;
 	while( odx_sndlen+len > odx_audio_buffer_len ) {
-		if(i++ > 10) {
+//printf("AUDIO Overrun %d\n", i);        
+		if(i++ > 100) {
 			// Overrun 
 		  odx_sndlen = 0;
 		  SDL_UnlockMutex(sndlock);
@@ -332,6 +341,7 @@ static void odx_sound_callback(void *data, Uint8 *stream, int len)
 	SDL_LockMutex(sndlock);
 	
 	if( odx_sndlen < len ) {
+//printf("AUDIO Underrun\n");        
 		memcpy( stream, data, odx_sndlen );
 		memset( stream+odx_sndlen, 0, len-odx_sndlen);
 		odx_sndlen = 0;
