@@ -18,6 +18,7 @@ char build_version[] = "GCW0 V1.1";
 
 static unsigned char splash_bmp[BMP_SIZE];
 static unsigned char menu_bmp[BMP_SIZE];
+static void odx_exit(char *param);
 
 int game_num_avail=0;
 static int last_game_selected=0;
@@ -43,6 +44,8 @@ int odx_gsensor=0;
 int master_volume = 100;
 
 char romdir[512];
+
+extern bool ui_exit;
 
 inline bool isJoyPressed_A(const int ExKey) {
 	if(ExKey & OD_A) printf("Joy A\n");
@@ -104,6 +107,12 @@ inline bool isJoyPressed_DOWN(const int ExKey) {
 	return ExKey & OD_DOWN;
 }
 
+unsigned int frontend_joystick_press ()
+{
+	unsigned int ExKey = odx_joystick_press();
+    if(ui_exit) odx_exit("");
+	return ExKey;
+}
 
 
 
@@ -145,7 +154,7 @@ printf("odx_intro_screen(void)\n");
 	blit_bmp_8bpp(splash_bmp);
 	odx_gamelist_text_out(1,230,build_version);
 	odx_video_flip();
-	odx_joystick_press();
+	frontend_joystick_press();
 	
 	sprintf(name,"skins/menu.bmp");
 	f=fopen(name,"rb");
@@ -176,6 +185,7 @@ static void game_list_init_nocache(void)
 				if (drivers[i].available==0)
 				{
 					sprintf(game,"%s.zip",drivers[i].name);
+					
 					if (strcmp(actual->d_name,game)==0)
 					{
 						drivers[i].available=1;
@@ -459,7 +469,7 @@ static int show_options(char *game)
 		COL_UnlockTexture(colRenderer);
 		COL_RenderCopyAndPresent(colRenderer);
 
-		ExKey=odx_joystick_press();
+		ExKey=frontend_joystick_press();
 		if(isJoyPressed_DOWN(ExKey)){
 			selected_option++;
 			selected_option = selected_option % options_count;
@@ -618,7 +628,7 @@ static void select_game(char *emu, char *game)
 		COL_UnlockTexture(colRenderer);
 		COL_RenderCopyAndPresent(colRenderer);
 
-		ExKey=odx_joystick_press();
+		ExKey=frontend_joystick_press();
 
 		if ((isJoyPressed_L(ExKey)) && (isJoyPressed_R(ExKey)) ) { odx_exit(""); }
 		if (isJoyPressed_UP(ExKey)) last_game_selected--;
@@ -825,7 +835,7 @@ void execute_game (char *playemu, char *playgame)
 	
 	args[n]=NULL;
 
-#if 0
+#if 1
 	for (i=0; i<n; i++)
 	{
 		fprintf(stderr,"%s ",args[i]);
@@ -946,7 +956,7 @@ signed int get_romdir(char *result) {
 			COL_RenderCopyAndPresent(colRenderer);
 
 			// Catch input
-			ExKey=odx_joystick_press();
+			ExKey=frontend_joystick_press();
 		printf("Got key %d\n", ExKey);	
 			/* L + R = Exit */
 			if ((isJoyPressed_L(ExKey)) && (isJoyPressed_R(ExKey)) ) { odx_exit(""); }
@@ -1084,7 +1094,7 @@ int main (int argc, char **argv)
 			odx_gamelist_text_out(10, 20, "Error: No available games found !");
 			odx_gamelist_text_out(10, 40, "Press a key to select a rom directory");
 			odx_video_flip();
-			odx_joystick_press();
+			frontend_joystick_press();
 			if (get_romdir(romdir) == -1)
 				odx_exit("");
 			else

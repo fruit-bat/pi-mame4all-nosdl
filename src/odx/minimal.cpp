@@ -51,6 +51,7 @@ unsigned char			odx_keys[OD_KEY_MAX];
 SDL_Joystick			*odx_joyanalog[] = {0,0};
 
 extern int master_volume;
+bool ui_exit = false;
 
 signed int axis_x[]={0, 0}, axis_y[]={0,0};
 
@@ -186,7 +187,7 @@ unsigned int odx_keyboard_read()
               break;
           case SDL_WINDOWEVENT_CLOSE:
               printf("Window %d closed\n", window_event->windowID);
-              res |= OD_EXIT;
+              ui_exit = true;
               break;
           default:
               printf("Window %d got unknown event %d\n",
@@ -203,8 +204,7 @@ unsigned int odx_keyboard_read()
 	keystates = SDL_GetKeyboardState(NULL);
 
 	if (keystates[SDL_SCANCODE_Q] == SDL_PRESSED) {
-		odx_deinit();
-		exit(0);
+        ui_exit = true;
 	}
 
 	// Keys for file chooser only...
@@ -266,8 +266,8 @@ unsigned int odx_joystick_read(unsigned int index)
 unsigned int odx_joystick_press ()
 {
 	unsigned int ExKey=0;
-	for(int i = 0; i< 20; ++i) if  ((odx_joystick_read(0) | odx_keyboard_read()) != 0 ) { usleep (10000); }
-	while ((ExKey=(odx_joystick_read(0) | odx_keyboard_read())) == 0 ) { usleep (10000); }
+	for(int i = 0; i< 20 && !ui_exit; ++i) if  ((odx_joystick_read(0) | odx_keyboard_read()) != 0 ) { usleep (10000); }
+	while (!ui_exit && ((ExKey=(odx_joystick_read(0) | odx_keyboard_read())) == 0 )) { usleep (10000); }
 //	printf("keystat %#010x \n", ExKey);  
 	return ExKey;
 }
@@ -437,7 +437,7 @@ void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int
   }
   printf("Found software driver at index %d\n", sdlRendererIndex);  
   
-  bool fullscreen = true;
+  bool fullscreen = false;
   
   sdlWindow = SDL_CreateWindow("Mame4Cubie", 50, 50, 1152, 768, SDL_WINDOW_RESIZABLE | (fullscreen ? SDL_WINDOW_BORDERLESS|SDL_WINDOW_FULLSCREEN : 0));
   printf("Created window\n"); 

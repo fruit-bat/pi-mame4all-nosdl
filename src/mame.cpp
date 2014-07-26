@@ -515,9 +515,10 @@ int updatescreen(void)
 	/* the user interface must be called between vh_update() and osd_update_video_and_audio(), */
 	/* to allow it to overlay things on the game display. We must call it even */
 	/* if the frame is skipped, to keep a consistent timing. */
-	if (handle_user_interface(real_scrbitmap))
+    int r;
+	if ((r = handle_user_interface(real_scrbitmap)))
 		/* quit if the user asked to */
-		return 1;
+		return r;
 
 	update_video_and_audio();
 

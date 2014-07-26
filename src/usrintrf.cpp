@@ -49,6 +49,7 @@ extern int neogeo_memcard_create(int);
 int autofire_menu(struct osd_bitmap *bitmap, int selected);
 #endif
 
+extern bool ui_exit;
 
 static int setup_selected;
 static int osd_selected;
@@ -3458,6 +3459,10 @@ if (Machine->gamedrv->flags & GAME_COMPUTER)
 	/* but don't quit if the setup menu is on screen */
 	if (setup_selected == 0 && input_ui_pressed(IPT_UI_CANCEL))
 		return 1;
+
+    if (ui_exit) 
+        return 2;
+
 
 	if (setup_selected == 0 && input_ui_pressed(IPT_UI_CONFIGURE))
 	{

@@ -3,7 +3,7 @@
 
 extern void odx_clear_video(); // for mame.cpp, to clear screen before running game
 
-#define printf odx_printf
+// #define printf odx_printf
 extern void odx_printf(char* fmt, ...);
 
 //#define memcpy fast_memcpy
