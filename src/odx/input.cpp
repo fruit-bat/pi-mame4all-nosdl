@@ -3,11 +3,6 @@
 
 int use_mouse;
 int joystick;
-
-unsigned int ExKey1=0;
-unsigned int ExKey2=0;
-unsigned int ExKey3=0;
-unsigned int ExKey4=0;
 int num_joysticks=4;
 #include "minimal.h"
 
@@ -127,92 +122,21 @@ const struct KeyboardInfo *osd_get_key_list(void)
 	return keylist;
 }
 
-// TODO PS - At some point these should probably be removed to allow handling by mame key-mapping
-bool is_key_pressed_special(int keycode) {
-	
-	switch(keycode) {
-		
-		case KEY_1: return ( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) );
-		/* Start B == Joystick UP + Start Button */
-		case KEY_2: return ( ( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && (ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey2 & OD_START));
-		/* Start C == Joystick RIGHT + Start Button */
-		case KEY_3: return ( ( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && (ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey3 & OD_START));
-		/* Start D == Joystick DOWN + Start Button */
-		case KEY_4: return ( ( (ExKey1 & OD_START) && !(ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && (ExKey1 & OD_DOWN) ) || (ExKey4 & OD_START));
-		/* Coin A == Select Button */
-		case KEY_5: return ( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) );
-		/* Coin B == Select Button + Joystick UP */	
-		case KEY_6: return ( ( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && (ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey2 & OD_SELECT));
-		/* Coin C == Select Button + Joystick RIGHT */
-		case KEY_7: return ( ( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && (ExKey1 & OD_RIGHT) && !(ExKey1 & OD_DOWN) ) || (ExKey3 & OD_SELECT));
-		/* Coin D == Select Button + Joystick DOWN */
-		case KEY_8: return ( ( !(ExKey1 & OD_START) && (ExKey1 & OD_SELECT) && !(ExKey1 & OD_UP) && !(ExKey1 & OD_RIGHT) && (ExKey1 & OD_DOWN) ) || (ExKey4 & OD_SELECT));
-
-		/* MAME Menu */
-		case KEY_TAB: return (ExKey1 & OD_START) && (ExKey1 & OD_SELECT);
-		/* Enter */
-		case KEY_ENTER: return (ExKey1 & OD_B);
-		/* Esc */
-		case KEY_ESC: return ((ExKey1 & OD_L) && (ExKey1 & OD_R) && (ExKey1 & OD_START));
-		/* Pause */
-		case KEY_P: return ((ExKey1 & OD_L) && (ExKey1 & OD_R) && (!(ExKey1 & OD_START)));
-		/* FPS */
-		case KEY_F11: return (((ExKey1 & OD_L) && (ExKey1 & OD_START)) || ((ExKey1 & OD_R) && (ExKey1 & OD_SELECT)));
-		/* Profiler */
-		case KEY_LSHIFT: return ((ExKey1 & OD_L) && (ExKey1 & OD_START));
-	}
-	return false;
-}
-
 int osd_is_key_pressed(int keycode)
 {
 	if (keycode >= KEY_MAX) return 0;
-
-	if (keycode == KEY_PAUSE)
-	{
-		static int pressed,counter;
-		int res;
-
-		res = is_key_pressed_special(keycode) ^ pressed;
-		if (res)
-		{
-			if (counter > 0)
-			{
-				if (--counter == 0)
-					pressed = is_key_pressed_special(keycode);
-			}
-			else counter = 10;
-		}
-
-		return res;
-	}
-
-	return is_key_pressed_special(keycode) || odx_key_pressed(keycode);
+	return odx_key_pressed(keycode);
 }
-
 
 int osd_wait_keypress(void)
 {
-	/*
-	clear_keybuf();
-	return readkey() >> 8;
-	*/
 	return 0;
 }
-
 
 int osd_readkey_unicode(int flush)
 {
-	/*
-	if (flush) clear_keybuf();
-	if (keypressed())
-		return ureadkey(NULL);
-	else
-		return 0;
-	*/
 	return 0;
 }
-
 
 /*
   limits:
@@ -258,6 +182,8 @@ static int joyequiv[][2] =
 	{ JOYCODE(1,0,4,0),	JOYCODE_1_BUTTON4 },
 	{ JOYCODE(1,0,5,0),	JOYCODE_1_BUTTON5 },
 	{ JOYCODE(1,0,6,0),	JOYCODE_1_BUTTON6 },
+	{ JOYCODE(1,0,7,0),	JOYCODE_1_BUTTON7 },
+	{ JOYCODE(1,0,8,0),	JOYCODE_1_BUTTON8 },
 	{ JOYCODE(2,1,1,1),	JOYCODE_2_LEFT },
 	{ JOYCODE(2,1,1,2),	JOYCODE_2_RIGHT },
 	{ JOYCODE(2,1,2,1),	JOYCODE_2_UP },
@@ -268,6 +194,8 @@ static int joyequiv[][2] =
 	{ JOYCODE(2,0,4,0),	JOYCODE_2_BUTTON4 },
 	{ JOYCODE(2,0,5,0),	JOYCODE_2_BUTTON5 },
 	{ JOYCODE(2,0,6,0),	JOYCODE_2_BUTTON6 },
+	{ JOYCODE(2,0,7,0),	JOYCODE_2_BUTTON7 },
+	{ JOYCODE(2,0,8,0),	JOYCODE_2_BUTTON8 },
 	{ JOYCODE(3,1,1,1),	JOYCODE_3_LEFT },
 	{ JOYCODE(3,1,1,2),	JOYCODE_3_RIGHT },
 	{ JOYCODE(3,1,2,1),	JOYCODE_3_UP },
@@ -278,6 +206,8 @@ static int joyequiv[][2] =
 	{ JOYCODE(3,0,4,0),	JOYCODE_3_BUTTON4 },
 	{ JOYCODE(3,0,5,0),	JOYCODE_3_BUTTON5 },
 	{ JOYCODE(3,0,6,0),	JOYCODE_3_BUTTON6 },
+	{ JOYCODE(3,0,7,0),	JOYCODE_3_BUTTON7 },
+	{ JOYCODE(3,0,8,0),	JOYCODE_3_BUTTON8 },
 	{ JOYCODE(4,1,1,1),	JOYCODE_4_LEFT },
 	{ JOYCODE(4,1,1,2),	JOYCODE_4_RIGHT },
 	{ JOYCODE(4,1,2,1),	JOYCODE_4_UP },
@@ -288,6 +218,8 @@ static int joyequiv[][2] =
 	{ JOYCODE(4,0,4,0),	JOYCODE_4_BUTTON4 },
 	{ JOYCODE(4,0,5,0),	JOYCODE_4_BUTTON5 },
 	{ JOYCODE(4,0,6,0),	JOYCODE_4_BUTTON6 },
+	{ JOYCODE(4,0,7,0),	JOYCODE_4_BUTTON7 },
+	{ JOYCODE(4,0,8,0),	JOYCODE_4_BUTTON8 },
 	{ 0,0 }
 };
 
@@ -331,7 +263,7 @@ static void init_joy_list(void)
 				tot++;
 			}
 		}
-		for (j = 0;j < 6;j++)
+		for (j = 0;j < 8;j++)
 		{
 			sprintf(buf,"J%d %s",i+1,"JoystickButton");
 			strncpy(joynames[tot],buf,MAX_JOY_NAME_LEN);
@@ -365,98 +297,32 @@ static void init_joy_list(void)
 	}
 }
 
-
 /* return a list of all available joys */
 const struct JoystickInfo *osd_get_joy_list(void)
 {
 	return joylist;
 }
 
-static int is_joy_button_pressed (int button, int ExKey)
-{
-	switch (button)
-	{
-		case 0: return ExKey & OD_B; break;
-		case 1: return ExKey & OD_A; break;
-		case 2: return ExKey & OD_Y; break;
-		case 3: return ExKey & OD_X; break;
-		case 4: return ExKey & OD_L; break;
-		case 5: return ExKey & OD_R; break;
-		default: break;
-	}
-	return 0; 
-}
-
-#define JOY_LEFT_PRESSED is_joy_axis_pressed(0,1,ExKey1)
-#define JOY_RIGHT_PRESSED is_joy_axis_pressed(0,2,ExKey1)
-#define JOY_UP_PRESSED is_joy_axis_pressed(1,1,ExKey1)
-#define JOY_DOWN_PRESSED is_joy_axis_pressed(1,2,ExKey1)
-
-static int is_joy_axis_pressed (int axis, int dir, int ExKey)
-{
-	extern int rotate_controls;
-	if (!rotate_controls)
-	{
-		/* Normal controls */
-		if (axis==0)
-		{
-			switch (dir)
-			{
-				case 1: return ExKey & OD_LEFT; break;
-				case 2: return ExKey & OD_RIGHT; break;
-				default: return 0; break;
-			}
-		}
-		else
-		{
-			switch (dir)
-			{
-				case 1: return ExKey & OD_UP; break;
-				case 2: return ExKey & OD_DOWN; break;
-				default: return 0; break;
-			}
-		}
-	}
-	else
-	{
-		/* Rotated controls */
-		if (axis==0)
-		{
-			switch (dir)
-			{
-				case 1: return ExKey & OD_UP; break;
-				case 2: return ExKey & OD_DOWN; break;
-				default: return 0; break;
-			}
-		}
-		else
-		{
-			switch (dir)
-			{
-				case 1: return ExKey & OD_RIGHT; break;
-				case 2: return ExKey & OD_LEFT; break;
-				default: return 0; break;
-			}
-		}
-	}
-	return 0;
-}
+#define JOY_LEFT_PRESSED odx_is_joy_axis_pressed(0,0,1)
+#define JOY_RIGHT_PRESSED odx_is_joy_axis_pressed(0,0,2)
+#define JOY_UP_PRESSED odx_is_joy_axis_pressed(0,1,1)
+#define JOY_DOWN_PRESSED odx_is_joy_axis_pressed(0,1,2)
 
 int osd_is_joy_pressed(int joycode)
 {
 	int joy_num,stick;
 
-
 	/* special case for mouse buttons */
 	switch (joycode)
 	{
+// TODO PS Fix this when I work out what its for!
 		case MOUSE_BUTTON(1):
-			return ExKey1 & OD_B; break;
 		case MOUSE_BUTTON(2):
-			return ExKey1 & OD_A; break;
 		case MOUSE_BUTTON(3):
-			return ExKey1 & OD_Y; break;
-	}
+			return false;
+        default:
+            break;
+    }
 
 	joy_num = GET_JOYCODE_JOY(joycode);
 
@@ -473,18 +339,11 @@ int osd_is_joy_pressed(int joycode)
 		int button;
 
 		button = GET_JOYCODE_BUTTON(joycode);
-		if (button == 0 || button > 6)
+		if (button == 0 || button > 8)
 			return 0;
 		button--;
 
-		switch (joy_num)
-		{
-			case 0: return is_joy_button_pressed(button, ExKey1); break;
-			case 1: return is_joy_button_pressed(button, ExKey2); break;
-			case 2: return is_joy_button_pressed(button, ExKey3); break;
-			case 3: return is_joy_button_pressed(button, ExKey4); break;
-			default: break;
-		}
+        return odx_is_joy_button_pressed (joy_num, button);
 	}
 	else
 	{
@@ -502,14 +361,7 @@ int osd_is_joy_pressed(int joycode)
 			return 0;
 		axis--;
 
-		switch (joy_num)
-		{
-			case 0: return is_joy_axis_pressed(axis, dir, ExKey1); break;
-			case 1: return is_joy_axis_pressed(axis, dir, ExKey2); break;
-			case 2: return is_joy_axis_pressed(axis, dir, ExKey3); break;
-			case 3: return is_joy_axis_pressed(axis, dir, ExKey4); break;
-			default: break;
-		}
+        return odx_is_joy_axis_pressed (joy_num, axis, dir);
 	}
 
 	return 0;
@@ -517,8 +369,7 @@ int osd_is_joy_pressed(int joycode)
 
 void osd_poll_joysticks(void)
 {
-  ExKey1 = odx_joystick_read(0) | odx_keyboard_read();
-  ExKey2 = odx_joystick_read(1);
+  odx_keyboard_read();
 }
 
 /* return a value in the range -128 .. 128 (yes, 128, not 127) */
@@ -566,7 +417,6 @@ void osd_trak_read(int player,int *deltax,int *deltay)
 	}
 }
 
-
 #ifndef MESS
 #ifndef TINY_COMPILE
 extern int no_of_tiles;
@@ -578,12 +428,8 @@ void osd_customize_inputport_defaults(struct ipd *defaults)
 {
 }
 
-
-
 void osd_led_w(int led,int on) {
 }
-
-
 
 void msdos_init_input (void)
 {
@@ -599,7 +445,6 @@ void msdos_init_input (void)
 	else
 		use_mouse = 0;
 }
-
 
 void msdos_shutdown_input(void)
 {

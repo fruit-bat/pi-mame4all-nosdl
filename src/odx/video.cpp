@@ -859,7 +859,7 @@ void osd_update_video_and_audio(struct osd_bitmap *bitmap)
 				static TICKER last;
 				do
 				{
-                    vsync();
+                 //   vsync();
 					curr = ticker();
                     usleep(2000);
 				} while (TICKS_PER_SEC / (curr - last) > video_fps * 110 /100);

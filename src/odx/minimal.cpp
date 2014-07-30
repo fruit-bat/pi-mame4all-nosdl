@@ -226,6 +226,26 @@ bool odx_key_pressed(int keycode) {
 	return keystates[keycode] == SDL_PRESSED;
 }
 
+bool odx_is_joy_button_pressed(int index, int button) {
+    SDL_Joystick *joystick = odx_joyanalog[index];
+    return (joystick != NULL) && SDL_JoystickGetButton(joystick, button);
+}
+
+bool odx_is_joy_axis_pressed (int index, int axis, int dir){
+    
+    SDL_Joystick *joystick = odx_joyanalog[index];
+    if(joystick == NULL) return 0;
+    int v = SDL_JoystickGetAxis(joystick, axis);
+    switch (dir)
+    {
+        case 2: return v > +32; break;
+        case 1: return v < -32; break;
+        default: break;
+    }
+ 	return 0;   
+}
+
+// For front end only
 unsigned int odx_joystick_read(unsigned int index)
 {
  	unsigned int res=0;
