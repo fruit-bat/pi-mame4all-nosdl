@@ -34,7 +34,9 @@ static unsigned int *dirtycolor;
 static int dirtypalette;
 static int dirty_bright;
 static int bright_lookup[256];
+
 extern UINT32 *palette_16bit_lookup;
+extern unsigned int odx_video_regulator;
 
 int frameskip,autoframeskip;
 #define FRAMESKIP_LEVELS 12
@@ -862,7 +864,7 @@ void osd_update_video_and_audio(struct osd_bitmap *bitmap)
                  //   vsync();
 					curr = ticker();
                     usleep(2000);
-				} while (TICKS_PER_SEC / (curr - last) > video_fps * 110 /100);
+				} while (TICKS_PER_SEC / (curr - last) > video_fps * odx_video_regulator /1000);
 				last = curr;
 			}
             

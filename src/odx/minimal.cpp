@@ -51,6 +51,7 @@ int						odx_sound_stereo=1;
 int						rotate_controls=0;
 unsigned char			odx_keys[OD_KEY_MAX];
 SDL_Joystick			*odx_joyanalog[] = {0,0};
+unsigned int            odx_video_regulator = 1100;
 
 extern int master_volume;
 bool ui_exit = false;
@@ -336,7 +337,8 @@ void odx_sound_play(void *buff, int len)
 	SDL_LockMutex(sndlock);
 	int i = 0;
 	while( odx_sndlen+len > odx_audio_buffer_len ) {
-//printf("AUDIO Overrun %d\n", i);        
+        if(i == 5 && odx_video_regulator > 900) odx_video_regulator -= 5;
+//printf("AUDIO Overrun %d %d\n", i, odx_video_regulator);        
 		if(i++ > 100) {
 			// Overrun 
 		  odx_sndlen = 0;
@@ -361,7 +363,8 @@ static void odx_sound_callback(void *data, Uint8 *stream, int len)
 	SDL_LockMutex(sndlock);
 	
 	if( odx_sndlen < len ) {
-//printf("AUDIO Underrun\n");        
+        if(odx_video_regulator < 2000) odx_video_regulator += 20;
+//printf("AUDIO Underrun %d\n", odx_video_regulator);        
 		memcpy( stream, data, odx_sndlen );
 		memset( stream+odx_sndlen, 0, len-odx_sndlen);
 		odx_sndlen = 0;
