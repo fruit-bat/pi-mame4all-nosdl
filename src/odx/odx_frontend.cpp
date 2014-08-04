@@ -151,18 +151,32 @@ printf("odx_intro_screen(void)\n");
 	if (f) {
 		fread(splash_bmp,1,BMP_SIZE,f);
 		fclose(f);
+printf("odx_intro_screen(void) - read splash image ok\n");  
 	}
+    else {
+printf("odx_intro_screen(void) - failed to read splash image\n");          
+    }
+    
+printf("odx_intro_screen(void) - 1\n");
 	blit_bmp_8bpp(splash_bmp);
+printf("odx_intro_screen(void) - 2\n");
 	odx_gamelist_text_out(1,230,build_version);
+printf("odx_intro_screen(void) - 3\n");
 	odx_video_flip();
+printf("odx_intro_screen(void) - 4\n");
 	frontend_joystick_press();
+printf("odx_intro_screen(void) - 5\n");
 	
 	sprintf(name,"skins/menu.bmp");
 	f=fopen(name,"rb");
 	if (f) {
 		fread(menu_bmp,1,BMP_SIZE,f);
 		fclose(f);
+printf("odx_intro_screen(void) - read menu image ok\n");  
 	}
+    else {
+printf("odx_intro_screen(void) - failed to read menu image\n");          
+    }
 }
 
 static void game_list_init_nocache(void)
