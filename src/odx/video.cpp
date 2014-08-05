@@ -856,7 +856,7 @@ void osd_update_video_and_audio(struct osd_bitmap *bitmap)
 		//{
 			profiler_mark(PROFILER_IDLE);
             
-            
+   /*         
 			{
 				static TICKER last;
 				do
@@ -867,7 +867,14 @@ void osd_update_video_and_audio(struct osd_bitmap *bitmap)
 				} while (TICKS_PER_SEC / (curr - last) > video_fps * odx_video_regulator /1000);
 				last = curr;
 			}
-            
+     */       
+            {
+				static TICKER last = ticker();
+                curr = ticker();
+                long delay = ((TICKS_PER_SEC*1000) / (video_fps * odx_video_regulator)) - (curr - last);
+                if(delay > 0) usleep(delay);
+				last = ticker();
+			}  
             /*
 				TICKER target;
 
