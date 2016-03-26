@@ -25,8 +25,6 @@
 
 #include "minimal.h"
 
-extern "C" void disp_wait_for_frame();
-
 SDL_Window *sdlWindow;
 SDL_Renderer *sdlRenderer;
 SDL_Texture *sdlTexture;
@@ -305,7 +303,6 @@ unsigned long odx_timer_read(void)
 
 void odx_video_wait_vsync(void) 
 {
-    disp_wait_for_frame();
 }
 
 void odx_sound_volume(int vol)
@@ -440,6 +437,7 @@ printf("Audio stopped.\n");
 
 void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int Hz, bool fullscreen)
 {
+  printf("odx-init\n");
 
 	/* All keys unpressed. */
 	for(int i = 0 ; i < OD_KEY_MAX ; i++ ) {

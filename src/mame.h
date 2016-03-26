@@ -95,6 +95,7 @@ struct GameOptions {
 	int translucency;
 	int antialias;
 	int use_artwork;
+	int display_effect;
 
 	#ifdef MESS
 	struct ImageFile image_files[MAX_IMAGES];

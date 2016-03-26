@@ -1,10 +1,10 @@
+#include <bcm_host.h>
+#include <assert.h>
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <SDL2/SDL.h>
 #include "col.h"
-
-extern "C" {
-#include "ve.h"
-#include "disp.h"
-}
 
 #define SDL_free free
 #define SDL_calloc calloc
@@ -21,7 +21,7 @@ COL_Texture* COL_TextureCreate(const unsigned int w, const unsigned int h, unsig
   texture->current_buffer = 0;
   int i;
   for(i=0; i<texture->buffer_count; ++i){
-    texture->buffers[i] = (uint8_t*)ve_malloc(s);
+    texture->buffers[i] = (uint8_t*)malloc(s);
     memset(texture->buffers[i], 0, s);
   }
   return texture;
@@ -31,7 +31,7 @@ static
 void COL_TextureFree(COL_Texture *const texture) {
   int i;
   for(i=0; i<texture->buffer_count; ++i){
-    ve_free(texture->buffers[i]);
+    free(texture->buffers[i]);
   } 
   SDL_free(texture);
 }
@@ -40,7 +40,7 @@ static
 void COL_TexturePresent(COL_Texture *const texture) {
   uint8_t *const buffer = texture->buffers[texture->current_buffer];
 //  disp_wait_for_frame();    
-  disp_new_frame(ve_virt2phys(buffer), ve_virt2phys(0), 0);
+//  disp_new_frame(ve_virt2phys(buffer), ve_virt2phys(0), 0);
   texture->current_buffer = (texture->current_buffer+1)%texture->buffer_count;
 }
 
@@ -63,7 +63,7 @@ void COL_TextureClear(COL_Texture *const texture) {
 }
 
 void COL_updateWindowPosition(COL_Renderer * renderer, const int x, const unsigned int y, const unsigned int w, const int h) {
-  disp_set_dest(x,y,w,h);
+//  disp_set_dest(x,y,w,h);
 }
 
 void COL_RendererClear(COL_Renderer *const renderer) {
@@ -71,7 +71,7 @@ void COL_RendererClear(COL_Renderer *const renderer) {
 }
 
 void COL_TextureFlush(COL_Texture *const texture){
-  ve_flush_cache(COL_TextureGetPixels(texture), texture->buffer_size);
+//  ve_flush_cache(COL_TextureGetPixels(texture), texture->buffer_size);
 }
 
 int
@@ -84,7 +84,7 @@ COL_CreateTexture(COL_Renderer * renderer,
   
   COL_Texture *col_texture = COL_TextureCreate(tw,th, 4);
   
-	disp_set_para(ve_virt2phys(COL_TextureGetPixels(col_texture)), 0,	COLOR_ARGB8888, tw, th, 0, 0, tw, th, x, y, w, h);
+//	disp_set_para(ve_virt2phys(COL_TextureGetPixels(col_texture)), 0,	COLOR_ARGB8888, tw, th, 0, 0, tw, th, x, y, w, h);
 
   if( renderer->texture) {  
     COL_TextureFree( renderer->texture);
@@ -140,7 +140,7 @@ COL_DestroyTexture(COL_Renderer * renderer)
 {
   COL_Texture *const col_texture = renderer->texture;
   if(col_texture) {  
-    disp_close();
+//    disp_close();
     COL_TextureFree(col_texture);
     renderer->texture = 0;
   }
@@ -150,34 +150,23 @@ void
 COL_DestroyRenderer(COL_Renderer * renderer)
 {
   if(renderer) {
-    disp_close();  
+    bcm_host_deinit();
     COL_DestroyTexture(renderer);
-    ve_close();
     SDL_free(renderer);
   }
 }
 
 COL_Renderer *COL_CreateRenderer()
 {
-  if (!ve_open()) {
-		fprintf(stderr, "Can't open ve\n");
-    return NULL;
-  }
-    
-	if (!disp_open())
-	{
-    ve_close();
-		fprintf(stderr, "Can't open /dev/disp\n");
-		return NULL;
-	}
-  
+    //Initialise dispmanx
+    bcm_host_init();
+
   COL_Renderer *col_renderer;
   
   col_renderer = (COL_Renderer *) SDL_calloc(1, sizeof(*col_renderer));
   
   if(!col_renderer) {
-      ve_close();
-      disp_close();
+      bcm_host_deinit();
       SDL_OutOfMemory();
       return NULL;    
   }

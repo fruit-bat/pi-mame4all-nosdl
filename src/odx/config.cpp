@@ -248,6 +248,7 @@ void parse_cmdline (int argc, char **argv, int game_index)
 	use_dirty	= get_bool	 ("config", "dirty",	NULL,	-1);
 	options.antialias   = get_bool   ("config", "antialias",    NULL,  1);
 	options.translucency = get_bool    ("config", "translucency", NULL, 1);
+	options.display_effect = get_int	("config", "display_effect", NULL, 0);
 
 	tmpstr             = get_string ("config", "depth", NULL, "auto");
 	options.color_depth = atoi(tmpstr);
