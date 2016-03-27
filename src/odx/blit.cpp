@@ -31,7 +31,7 @@ INLINE void blitscreen_color8_exact(struct osd_bitmap *bitmap)
 	int width=(bitmap->line[1] - bitmap->line[0]);
 	unsigned char *lb=bitmap->line[skiplines] + skipcolumns;
 
-  void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
+	void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
 
 	register unsigned int *address=(unsigned int *)k;
 

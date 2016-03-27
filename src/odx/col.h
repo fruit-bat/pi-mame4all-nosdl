@@ -1,7 +1,7 @@
 #ifndef _COL_H
 #define _COL_H
 
-#define COL_TEXTURE_BUFFER_COUNT (3)
+#define COL_TEXTURE_BUFFER_COUNT (2)
 
 typedef struct COL_Texture {
   unsigned int buffer_count;

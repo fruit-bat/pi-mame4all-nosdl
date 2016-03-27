@@ -36,7 +36,7 @@
 
 //IMPORTANT, make sure this function is commented out at runtime
 //as it has a big performance impact!
-#define	SHOW_ERROR	//gles_show_error();
+#define	SHOW_ERROR	gles_show_error();
 
 static const char* vertex_shader_prg =
     "uniform mat4 u_vp_matrix;                              \n"
@@ -129,7 +129,7 @@ void gles_show_error()
 	GLenum error = GL_NO_ERROR;
     error = glGetError();
     if (GL_NO_ERROR != error)
-        printf("GL Error %x encountered!\n", error);
+        printf("GLES2  Error %x encountered!\n", error);
 }
 
 static GLuint CreateShader(GLenum type, const char *shader_src)
@@ -154,7 +154,7 @@ static GLuint CreateShader(GLenum type, const char *shader_src)
 			char* info_log = (char *)malloc(sizeof(char) * info_len);
 			glGetShaderInfoLog(shader, info_len, NULL, info_log);
 			// TODO(dspringer): We could really use a logging API.
-			printf("Error compiling shader:\n%s\n", info_log);
+			printf("GLES2 Error compiling shader:\n%s\n", info_log);
 			free(info_log);
 		}
 		glDeleteShader(shader);
@@ -166,18 +166,23 @@ static GLuint CreateShader(GLenum type, const char *shader_src)
 static GLuint CreateProgram(const char *vertex_shader_src, const char *fragment_shader_src)
 {
 	GLuint vertex_shader = CreateShader(GL_VERTEX_SHADER, vertex_shader_src);
-	if(!vertex_shader)
+	if(!vertex_shader) {
+		printf("GLES2 Failed to create vertex shader\n");
 		return 0;
+	}
 	GLuint fragment_shader = CreateShader(GL_FRAGMENT_SHADER, fragment_shader_src);
 	if(!fragment_shader)
 	{
+		printf("GLES2 Failed to create fragment shader\n");
 		glDeleteShader(vertex_shader);
 		return 0;
 	}
 
 	GLuint program_object = glCreateProgram();
-	if(!program_object)
+	if(!program_object) {
+		printf("GLES2 Failed to create program object\n");		
 		return 0;
+	}
 	glAttachShader(program_object, vertex_shader);
 	glAttachShader(program_object, fragment_shader);
 
@@ -244,6 +249,8 @@ static float tex_width, tex_height;
 
 void gles2_create(int display_width, int display_height, int bitmap_width, int bitmap_height, int depth)
 {
+	printf("GLES2 INIT\n");
+	
 	float min_u, max_u, min_v, max_v;
 	
 	tex_width = (float)bitmap_width;
@@ -258,18 +265,18 @@ void gles2_create(int display_width, int display_height, int bitmap_width, int b
 	float op_zoom = 1.0f;
 	
 	memset(&shader, 0, sizeof(ShaderInfo));
-/* TODO PS update sahder program 32 bit only
-	if (options.display_effect == 1 && !vector_game)
-		if(depth == 8)
-			shader.program = CreateProgram(vertex_shader_prg, fragment_shader_scanline);
-		else
-			shader.program = CreateProgram(vertex_shader_prg, fragment_shader_scanline_16bit);
-	else
-		if(depth == 8)
-			shader.program = CreateProgram(vertex_shader_prg, fragment_shader_none);
-		else
+///* TODO PS update sahder program 32 bit only
+//	if (options.display_effect == 1 && !vector_game)
+//		if(depth == 8)
+//			shader.program = CreateProgram(vertex_shader_prg, fragment_shader_scanline);
+//		else
+//			shader.program = CreateProgram(vertex_shader_prg, fragment_shader_scanline_16bit);
+//	else
+//		if(depth == 8)
+//			shader.program = CreateProgram(vertex_shader_prg, fragment_shader_none);
+//		else
 			shader.program = CreateProgram(vertex_shader_prg, fragment_shader_none_16bit);
-*/
+//*/
 	if(shader.program)
 	{
 		shader.a_position	= glGetAttribLocation(shader.program, "a_position");
@@ -278,14 +285,20 @@ void gles2_create(int display_width, int display_height, int bitmap_width, int b
 		shader.u_texture	= glGetUniformLocation(shader.program, "u_texture");
 		shader.u_palette    = glGetUniformLocation(shader.program, "u_palette");
 	}
-	if(!shader.program) return;
+	else {
+		printf("GLES2 failed to create shader.program\n");
+		return;
+	}
 
+	printf("GLES2 genTextures\n");
 	glGenTextures(2, textures);	SHOW_ERROR
 
 	//create bitmap texture
 	//8bit uses a texture palette, 16bit does not
+	printf("GLES2 glBindTexture\n");
 	glBindTexture(GL_TEXTURE_2D, textures[0]); SHOW_ERROR
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGB, GL_INT, NULL); SHOW_ERROR
+	printf("GLES2 glTexImage2D\n");
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, NULL); SHOW_ERROR
 
 	uvs[0] = min_u;
 	uvs[1] = min_v;
@@ -296,6 +309,7 @@ void gles2_create(int display_width, int display_height, int bitmap_width, int b
 	uvs[6] = min_u;
 	uvs[7] = max_v;
 
+	printf("GLES2 glGenBuffers\n");
 	glGenBuffers(3, buffers); SHOW_ERROR
 	glBindBuffer(GL_ARRAY_BUFFER, buffers[0]); SHOW_ERROR
 	glBufferData(GL_ARRAY_BUFFER, kVertexCount * sizeof(GLfloat) * 3, vertices, GL_STATIC_DRAW); SHOW_ERROR
@@ -306,6 +320,7 @@ void gles2_create(int display_width, int display_height, int bitmap_width, int b
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, kIndexCount * sizeof(GL_UNSIGNED_SHORT), indices, GL_STATIC_DRAW); SHOW_ERROR
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); SHOW_ERROR
 
+	printf("GLES2 glClearColor\n");
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); SHOW_ERROR
 	glDisable(GL_DEPTH_TEST); SHOW_ERROR
 	glDisable(GL_DITHER); SHOW_ERROR
@@ -360,7 +375,9 @@ static void gles2_DrawQuad_32(const ShaderInfo *sh, GLuint p_textures[2])
 
 void gles2_draw(void *screen, int width, int height, int depth)
 {
+printf(".");
 	if(!shader.program) return;
+printf("-");
 
 	glClear(GL_COLOR_BUFFER_BIT); SHOW_ERROR
 	glViewport(0, 0, dis_width, dis_height); SHOW_ERROR
