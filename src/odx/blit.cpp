@@ -9,6 +9,7 @@ extern int skiplines;
 extern int skipcolumns;
 
 #define FLIP_VIDEO odx_video_flip();
+#define RU32(X) ((((unsigned int)X)+31)&~0x1f) 
 
 extern int video_scale;
 
@@ -32,7 +33,8 @@ INLINE void blitscreen_color8_exact(struct osd_bitmap *bitmap)
 	unsigned char *lb=bitmap->line[skiplines] + skipcolumns;
 
 	void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
-
+	unsigned int adj = (32 - (pitch & 0x1f)) & 0x1f;
+	
 	register unsigned int *address=(unsigned int *)k;
 
 	for (y = 0; y < gfx_display_lines; ++y)
@@ -40,8 +42,9 @@ INLINE void blitscreen_color8_exact(struct osd_bitmap *bitmap)
 		for (x = 0; x < gfx_display_columns; ++x)
 		{
 			*(address++) = odx_palette_rgb[*(lb + x)];
-    }
+		}
 		lb += width;
+		address += adj;
 	}
 
 	COL_UnlockTexture(colRenderer);
@@ -67,7 +70,8 @@ INLINE void blitscreen_palettized16_exact(struct osd_bitmap *bitmap)
 	int width=(bitmap->line[1] - bitmap->line[0])>>1;
 	unsigned short *lb=((unsigned short*)(bitmap->line[skiplines])) + skipcolumns;
 
-  void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
+	void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
+	unsigned int adj = (32 - (pitch & 0x1f)) & 0x1f;
 	register unsigned int *address=(unsigned int *)k;
 
 	for (y = 0; y < gfx_display_lines; ++y)
@@ -75,7 +79,8 @@ INLINE void blitscreen_palettized16_exact(struct osd_bitmap *bitmap)
 		for (x = 0; x < gfx_display_columns; ++x)
 		{
 			*(address++) =  palette_16bit_lookup[*(lb + x)];  
-    }
+		}
+		address += adj;
 		lb += width;
 	}
 
@@ -102,16 +107,18 @@ INLINE void blitscreen_color16_exact(struct osd_bitmap *bitmap)
 	int width=(bitmap->line[1] - bitmap->line[0])>>1;
 	unsigned short *lb=((unsigned short*)(bitmap->line[skiplines])) + skipcolumns;
 
-  void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
+	void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
+	unsigned int adj = (32 - (pitch & 0x1f)) & 0x1f;
 	register unsigned int *address=(unsigned int *)k;
   
 	for (y = 0; y < gfx_display_lines; ++y)
 	{
 		for (x = 0; x < gfx_display_columns; ++x)
 		{
-      unsigned int c = (unsigned int)lb[x];
+			unsigned int c = (unsigned int)lb[x];
 			*(address++) =  ((c&0xF800)<<8) | ((c&0x7e0)<<5) | ((c&0x1f)<<3) | 0xff000000  ;
-    }
+		}
+ 		address += adj;
 		lb += width;
 	}
 

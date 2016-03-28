@@ -36,11 +36,12 @@ EGLSurface surface = NULL;
 static EGLContext context = NULL;
 static EGL_DISPMANX_WINDOW_T nativewindow;
 
+#define RU32(X) (((X)+31)&~0x1f)
 
 static
 COL_Texture* COL_TextureCreate(const unsigned int w, const unsigned int h, unsigned int d) {
   COL_Texture *const texture = (COL_Texture *) SDL_calloc(1, sizeof(*texture));
-  const unsigned int s = w*h*d;
+  const unsigned int s = RU32(w)*h*d;
   texture->w = w;
   texture->h = h;
   texture->buffer_size = s;
@@ -65,10 +66,10 @@ void COL_TextureFree(COL_Texture *const texture) {
 
 static
 void COL_TexturePresent(COL_Texture *const texture) {
-  uint8_t *const buffer = texture->buffers[texture->current_buffer];
+	uint8_t *const buffer = texture->buffers[texture->current_buffer];
 
 
-	int surface_width = texture->w;
+	int surface_width = RU32(texture->w);
 	int surface_height = texture->h;
 
   	VC_RECT_T dst_rect;
@@ -118,7 +119,8 @@ void COL_updateWindowPosition(COL_Renderer * renderer, const int x, const unsign
 	printf("COL_updateWindowPosition\n");
 
 	VC_RECT_T dst_rect;
-	VC_RECT_T src_rect;
+	
+	dispman_update = vc_dispmanx_update_start( 0 );
 
 	vc_dispmanx_rect_set( 
 		&dst_rect, 
@@ -126,29 +128,18 @@ void COL_updateWindowPosition(COL_Renderer * renderer, const int x, const unsign
 		y, //options.display_border,
 		w, 
 		h);
-/*
-VCHPRE_ int VCHPOST_ vc_dispmanx_element_change_attributes( DISPMANX_UPDATE_HANDLE_T update, 
-                                                            DISPMANX_ELEMENT_HANDLE_T element,
-                                                            uint32_t change_flags,
-                                                            int32_t layer,
-                                                            uint8_t opacity,
-                                                            const VC_RECT_T *dest_rect,
-                                                            const VC_RECT_T *src_rect,
-                                                            DISPMANX_RESOURCE_HANDLE_T mask,
-                                                            DISPMANX_TRANSFORM_T transform );
-                                                            * */
-    // TODO Not working 
-    /*
+    
 	vc_dispmanx_element_change_attributes(dispman_update,
                                           dispman_element,
                                           ELEMENT_CHANGE_DEST_RECT,
                                           1,
                                           255,
                                           &dst_rect,
-                                          &src_rect,
+                                          0,
                                           resource0,
                                           (DISPMANX_TRANSFORM_T) 0 );
-*/
+
+	vc_dispmanx_update_submit( dispman_update, 0, 0 );
 }
 
 void COL_RendererClear(COL_Renderer *const renderer) {
@@ -195,8 +186,8 @@ COL_CreateTexture(COL_Renderer * renderer,
 	//Create two surfaces for flipping between
 	//Make sure bitmap type matches the source for better performance
 	uint32_t crap;
-	resource0 = vc_dispmanx_resource_create(VC_IMAGE_ARGB8888, tw, th, &crap);
-	resource1 = vc_dispmanx_resource_create(VC_IMAGE_ARGB8888, tw, th, &crap);
+	resource0 = vc_dispmanx_resource_create(VC_IMAGE_ARGB8888, RU32(tw), th, &crap);
+	resource1 = vc_dispmanx_resource_create(VC_IMAGE_ARGB8888, RU32(tw), th, &crap);
     
 	vc_dispmanx_rect_set( 
 		&dst_rect, 
@@ -205,7 +196,7 @@ COL_CreateTexture(COL_Renderer * renderer,
 		display_width, 
 		display_height);
 		
-	vc_dispmanx_rect_set( &src_rect, 0, 0, tw << 16, th << 16);
+	vc_dispmanx_rect_set( &src_rect, 0, 0, RU32(tw) << 16, th << 16);
     
 	//Make sure mame and background overlay the menu program
 	dispman_update = vc_dispmanx_update_start( 0 );
@@ -288,9 +279,27 @@ COL_RenderCopyAndPresent(COL_Renderer *const renderer)
 void
 COL_DestroyTexture(COL_Renderer * renderer)
 {
+	
+	int ret;
+	printf("Shuting down dispmanx\n");
+	dispman_update = vc_dispmanx_update_start( 0 );
+	ret = vc_dispmanx_element_remove( dispman_update, dispman_element );
+	ret = vc_dispmanx_element_remove( dispman_update, dispman_element_bg );
+	ret = vc_dispmanx_update_submit_sync( dispman_update );
+	dispman_update = vc_dispmanx_update_start( 0 );
+	ret = vc_dispmanx_resource_delete( resource0 );
+	assert(ret == 0);
+	ret = vc_dispmanx_resource_delete( resource1 );
+	assert(ret == 0);
+//	ret = vc_dispmanx_resource_delete( resource_bg );
+	assert(ret == 0);
+	ret = vc_dispmanx_display_close( dispman_display );
+	assert(ret == 0);
+	ret = vc_dispmanx_update_submit_sync( dispman_update );
+	assert(ret == 0);
+
   COL_Texture *const col_texture = renderer->texture;
   if(col_texture) {  
-//    disp_close();
     COL_TextureFree(col_texture);
     renderer->texture = 0;
   }
@@ -299,11 +308,14 @@ COL_DestroyTexture(COL_Renderer * renderer)
 void
 COL_DestroyRenderer(COL_Renderer * renderer)
 {
-  if(renderer) {
-    bcm_host_deinit();
+	printf("COL_DestroyRenderer\n");
+
     COL_DestroyTexture(renderer);
-    SDL_free(renderer);
-  }
+	if(renderer) {
+		printf("bcm_host_deinit\n");
+		bcm_host_deinit();
+		SDL_free(renderer);
+	}
 }
 
 COL_Renderer *COL_CreateRenderer()

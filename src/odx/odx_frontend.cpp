@@ -130,12 +130,14 @@ static void blit_bmp_8bpp(unsigned char *in)
 		for(int x = 0; x < SCREEN_WIDTH; ++x) {
 			int s = *src++;
 			*dest++ = 
+			  0xff000000 | 
 			  ((s & 0xff000000) >> 8) | 
 			  ((s & 0xff0000) >> 8) |
 			  ((s & 0xff00) >> 8 ) ;
 		}
 	}
-
+	COL_UnlockTexture(colRenderer);
+	
 	SDL_FreeSurface(temp);
 }
 
@@ -865,6 +867,7 @@ void execute_game (char *playemu, char *playgame)
 	fflush(stderr);
 #endif
 	odx_deinit();
+
 	execv(args[0], args); 
 }
 
