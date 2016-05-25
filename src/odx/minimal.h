@@ -30,10 +30,10 @@
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 */
-#define ODX_SCREEN_WIDTH 320
-#define ODX_SCREEN_HEIGHT 240
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 240
+#define ODX_SCREEN_WIDTH 640
+#define ODX_SCREEN_HEIGHT 480
+#define SCREEN_WIDTH 640
+#define SCREEN_HEIGHT 480
 
 #define odx_video_color8(C,R,G,B)  (odx_palette_rgb[C] = ((((R)&0xFF)<<16)|(((G)&0xFF)<<8)|(((B)&0xFF)))|0xff000000)
 #define odx_video_color16(R,G,B,A) ((((R)&0xFF)<<16)|(((G)&0xFF)<<8)|(((B)&0xFF))|0xff000000)

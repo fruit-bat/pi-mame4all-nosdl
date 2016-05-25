@@ -86,7 +86,7 @@ void odx_get_render_dest(
   // Add window border offset
   if(!(flags & SDL_WINDOW_BORDERLESS)) {
     win_x += 1;  // TODO Find out where to get the SDL window left border width from
-    win_y += 26; // TODO Find out where to get the SDL window top border hight from
+    win_y += 30; // TODO Find out where to get the SDL window top border hight from
   }
   
   int x,y;
@@ -329,11 +329,15 @@ printf("Audio stopped.\n");
  	odx_vol = vol;
 }
 
+static SDL_AudioSpec actual_audio_spec;
+
 void odx_sound_play(void *buff, int len)
 {
 	SDL_LockMutex(sndlock);
 	int i = 0;
-	while( odx_sndlen+len > odx_audio_buffer_len ) {
+	const bool monoToStereo = odx_audio_spec.channels == 1 && actual_audio_spec.channels == 2;
+	const int actualLen = monoToStereo ? len<<1 : len;
+	while( odx_sndlen+actualLen > odx_audio_buffer_len ) {
         if(i == 5 && odx_video_regulator > 900) odx_video_regulator -= 5;
 //printf("AUDIO Overrun %d %d\n", i, odx_video_regulator);        
 		if(i++ > 100) {
@@ -348,8 +352,19 @@ void odx_sound_play(void *buff, int len)
 	}
 
 	if( odx_audio_spec.userdata ) {
-		memcpy( (char*)odx_audio_spec.userdata + odx_sndlen, buff, len );
-		odx_sndlen += len;
+		if(monoToStereo) {
+			short* p = (short*)((char*)odx_audio_spec.userdata + odx_sndlen);
+			short* q = (short*)buff;
+			for(int k=0; k < len>>1; ++k) {
+				const short s = q[k];
+				*p++ = s;
+				*p++ = s;
+			}
+		}
+		else {
+			memcpy( (char*)odx_audio_spec.userdata + odx_sndlen, buff, len );
+		}
+		odx_sndlen += actualLen;
 	}
 
 	SDL_UnlockMutex(sndlock);
@@ -375,6 +390,7 @@ static void odx_sound_callback(void *data, Uint8 *stream, int len)
 	SDL_UnlockMutex(sndlock);
 }
 
+  
 void odx_sound_thread_start(void)
 {
 	odx_sndlen=0;
@@ -387,7 +403,7 @@ printf("Starting audio...\n");
 	memset( audiobuf, 0 , odx_audio_buffer_len );
 	odx_audio_spec.userdata=audiobuf;
 
-  SDL_AudioSpec actual_audio_spec;
+
   
   printf("Requested audio format %d, freq %d, channels %d, samples %d\n",
     odx_audio_spec.format,
