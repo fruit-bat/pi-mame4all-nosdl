@@ -7,9 +7,11 @@ OSOBJS = $(OBJ)/odx/fastmem.o $(OBJ)/odx/minimal.o \
 	$(OBJ)/odx/odx.o $(OBJ)/odx/video.o $(OBJ)/odx/blit.o \
 	$(OBJ)/odx/sound.o $(OBJ)/odx/input.o $(OBJ)/odx/fileio.o \
 	$(OBJ)/odx/config.o $(OBJ)/odx/fronthlp.o \
+	$(OBJ)/odx/alsa_sound.o \
 	$(OBJ)/odx/col.o
 	
 	
 FEOBJS = $(OBJ)/odx/fastmem.o $(OBJ)/odx/minimal.o $(OBJ)/odx/odx_frontend.o \
+	$(OBJ)/odx/alsa_sound.o \
 	$(OBJ)/odx/col.o
 

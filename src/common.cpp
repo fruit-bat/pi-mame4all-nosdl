@@ -851,6 +851,8 @@ void schedule_full_refresh(void)
 
 void set_visible_area(int min_x,int max_x,int min_y,int max_y)
 {
+	printf("set_visible_area(int min_x=%d,int max_x=%d,int min_y=%d,int max_y=%d)\n",
+		min_x, max_x,min_y, max_y);
 	Machine->visible_area.min_x = min_x;
 	Machine->visible_area.max_x = max_x;
 	Machine->visible_area.min_y = min_y;

@@ -36,7 +36,6 @@ static int dirty_bright;
 static int bright_lookup[256];
 
 extern UINT32 *palette_16bit_lookup;
-extern unsigned int odx_video_regulator;
 
 int frameskip,autoframeskip;
 #define FRAMESKIP_LEVELS 12

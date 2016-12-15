@@ -3,11 +3,8 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <SDL2/SDL.h>
+#include <stdio.h>
 #include "col.h"
-#define SDL_free free
-#define SDL_calloc calloc
-#define SDL_malloc malloc
 
 #define ELEMENT_CHANGE_DEST_RECT      (1<<2)
 
@@ -40,7 +37,7 @@ static EGL_DISPMANX_WINDOW_T nativewindow;
 
 static
 COL_Texture* COL_TextureCreate(const unsigned int w, const unsigned int h, unsigned int d) {
-  COL_Texture *const texture = (COL_Texture *) SDL_calloc(1, sizeof(*texture));
+  COL_Texture *const texture = (COL_Texture *) calloc(1, sizeof(*texture));
   const unsigned int s = RU32(w)*h*d;
   texture->w = w;
   texture->h = h;
@@ -61,7 +58,7 @@ void COL_TextureFree(COL_Texture *const texture) {
   for(i=0; i<texture->buffer_count; ++i){
     free(texture->buffers[i]);
   } 
-  SDL_free(texture);
+  free(texture);
 }
 
 static
@@ -162,13 +159,7 @@ COL_CreateTexture(COL_Renderer * renderer,
   tw,th,x,y,w,h);
   
   COL_Texture *col_texture = COL_TextureCreate(tw,th, 4);
-  
-  
-  
-  	int ret;
-
-  
-  
+   
  	uint32_t display_width = w, display_height = h;
     
 	VC_RECT_T dst_rect;
@@ -213,7 +204,7 @@ COL_CreateTexture(COL_Renderer * renderer,
                                               0,
                                               (DISPMANX_TRANSFORM_T) 0 );
     
-	ret = vc_dispmanx_update_submit_sync( dispman_update );
+	vc_dispmanx_update_submit_sync( dispman_update );
     
 	// setup swapping of double buffers
 	cur_res = resource1;
@@ -314,7 +305,7 @@ COL_DestroyRenderer(COL_Renderer * renderer)
 	if(renderer) {
 		printf("bcm_host_deinit\n");
 		bcm_host_deinit();
-		SDL_free(renderer);
+		free(renderer);
 	}
 }
 
@@ -325,11 +316,10 @@ COL_Renderer *COL_CreateRenderer()
 
   COL_Renderer *col_renderer;
   
-  col_renderer = (COL_Renderer *) SDL_calloc(1, sizeof(*col_renderer));
+  col_renderer = (COL_Renderer *) calloc(1, sizeof(*col_renderer));
   
   if(!col_renderer) {
       bcm_host_deinit();
-      SDL_OutOfMemory();
       return NULL;    
   }
 
