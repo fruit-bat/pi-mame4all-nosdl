@@ -24,6 +24,7 @@ RM = @rm -f
 CP = @cp
 
 SDLHOME=/media/pi/PiSpace/src/cubie/ct-sdl2
+# SDLHOME=/media/pi/PiSpace/src/SDL2.0
 
 DEVLIBS = -L$(SDLHOME)/build/.libs -L/usr/lib/arm-linux-gnueabihf
 

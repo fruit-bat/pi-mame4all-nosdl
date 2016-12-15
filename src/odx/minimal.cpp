@@ -81,9 +81,12 @@ void odx_get_render_dest(
   SDL_GetWindowSize(sdlWindow, &win_w, &win_h);
   SDL_GetWindowPosition(sdlWindow, &win_x, &win_y);  
   
+  printf("SDL_GetWindowPosition %d,%d\n", win_x, win_y);  
+  
   int flags = SDL_GetWindowFlags(sdlWindow);
     
   // Add window border offset
+  
   if(!(flags & SDL_WINDOW_BORDERLESS)) {
     win_x += 1;  // TODO Find out where to get the SDL window left border width from
     win_y += 30; // TODO Find out where to get the SDL window top border hight from
@@ -469,24 +472,36 @@ void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int
   for(sdlRendererIndex=0; ;++sdlRendererIndex) {
     if(0!=SDL_GetRenderDriverInfo(sdlRendererIndex, &rendererInfo)) {
       printf("Could not find required driver\n");
+      exit(1);
     }
+    printf("Found software driver at index %d with name %s\n", sdlRendererIndex, rendererInfo.name);  
+
     if(strcmp(rendererInfo.name, "software")==0) {
         break;
     }
-  }
-  printf("Found software driver at index %d\n", sdlRendererIndex);  
+  }  
+
+  printf("Using software driver at index %d with name %s\n", sdlRendererIndex, rendererInfo.name);  
    
-  sdlWindow = SDL_CreateWindow("Mame4Cubie", 50, 50, 1152, 768, SDL_WINDOW_RESIZABLE | (fullscreen ? SDL_WINDOW_BORDERLESS|SDL_WINDOW_FULLSCREEN : 0));
+  sdlWindow = SDL_CreateWindow(
+    "Mame4Cubie", 
+    SDL_WINDOWPOS_UNDEFINED, 
+    SDL_WINDOWPOS_UNDEFINED, 
+    fullscreen ? 1280 : 1024, 
+    fullscreen ? 800 : 768, 
+    fullscreen ? SDL_WINDOW_BORDERLESS|SDL_WINDOW_FULLSCREEN : SDL_WINDOW_RESIZABLE);
+      
   printf("Created window\n"); 
      
   sdlRenderer = SDL_CreateRenderer(sdlWindow, sdlRendererIndex, 0);
+  
   printf("Created renderer %ld\n", sdlRenderer);
   
   SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
   
   odx_clear_background();
   
-  colRenderer = COL_CreateRenderer();
+  colRenderer = COL_CreateRenderer(); 
   printf("Created col renderer %ld\n", colRenderer);
   
 	/* General video & audio stuff */
