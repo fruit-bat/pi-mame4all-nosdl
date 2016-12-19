@@ -51,7 +51,7 @@ CFLAGS = -fsigned-char $(DEVLIBS) \
 
 LDFLAGS = $(CFLAGS) -s 
 
-LIBS = -lSDL2 -lm -lpthread -lX11 -lasound -L/opt/vc/lib -lbcm_host
+LIBS = -lSDL2 -lm -lpthread -lX11 -lasound -L/opt/vc/lib -lbcm_host -L/usr/X11R6/lib
 # -lSDL2
 
 OBJ = obj_$(TARGET)_$(MAMEOS)

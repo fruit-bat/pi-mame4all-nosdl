@@ -23,6 +23,7 @@
 #include <SDL2/SDL.h>
 
 #include "col.h"
+#include "driver.h"
 
 /*
 #define ODX_SCREEN_WIDTH 320
@@ -77,6 +78,7 @@ extern void odx_video_setpalette(void);
 extern unsigned int odx_joystick_read(unsigned int index);
 extern bool odx_is_joy_button_pressed(int index, int button);
 extern bool odx_is_joy_axis_pressed (int index, int axis, int dir);
+extern void odx_poll_joysticks();
 
 
 extern unsigned int odx_keyboard_read();
@@ -93,6 +95,12 @@ extern void odx_sound_play(void *buff, int len);
 extern void odx_sound_thread_start(void);
 extern void odx_sound_thread_stop(void);
 extern void odx_sound_init(int rate, int bits, int stereo);
+
+extern void odx_window_create(bool fullscreen, void (*position_listener)(int x, int y, int w, int h));
+extern void odx_window_pos(int *x, int *y, int *w, int *h);
+extern void odx_window_process_events();
+extern bool odx_window_is_key_pressed(unsigned int keycode);
+extern KeyboardInfo* odx_window_get_keyboard_info();
 
 extern void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int Hz, bool fullscreen);
 extern void odx_deinit(void);

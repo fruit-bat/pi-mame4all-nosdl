@@ -1,130 +1,20 @@
 #include "allegro.h"
 #include "driver.h"
-
-int use_mouse;
-int joystick;
-int num_joysticks=4;
 #include "minimal.h"
 
-static struct KeyboardInfo keylist[] =
-{
-	{ "A",			KEY_A,				KEYCODE_A },
-	{ "B",			KEY_B,				KEYCODE_B },
-	{ "C",			KEY_C,				KEYCODE_C },
-	{ "D",			KEY_D,				KEYCODE_D },
-	{ "E",			KEY_E,				KEYCODE_E },
-	{ "F",			KEY_F,				KEYCODE_F },
-	{ "G",			KEY_G,				KEYCODE_G },
-	{ "H",			KEY_H,				KEYCODE_H },
-	{ "I",			KEY_I,				KEYCODE_I },
-	{ "J",			KEY_J,				KEYCODE_J },
-	{ "K",			KEY_K,				KEYCODE_K },
-	{ "L",			KEY_L,				KEYCODE_L },
-	{ "M",			KEY_M,				KEYCODE_M },
-	{ "N",			KEY_N,				KEYCODE_N },
-	{ "O",			KEY_O,				KEYCODE_O },
-	{ "P",			KEY_P,				KEYCODE_P },
-	{ "Q",			KEY_Q,				KEYCODE_Q },
-	{ "R",			KEY_R,				KEYCODE_R },
-	{ "S",			KEY_S,				KEYCODE_S },
-	{ "T",			KEY_T,				KEYCODE_T },
-	{ "U",			KEY_U,				KEYCODE_U },
-	{ "V",			KEY_V,				KEYCODE_V },
-	{ "W",			KEY_W,				KEYCODE_W },
-	{ "X",			KEY_X,				KEYCODE_X },
-	{ "Y",			KEY_Y,				KEYCODE_Y },
-	{ "Z",			KEY_Z,				KEYCODE_Z },
-	{ "0",			KEY_0,				KEYCODE_0 },
-	{ "1",			KEY_1,				KEYCODE_1 },
-	{ "2",			KEY_2,				KEYCODE_2 },
-	{ "3",			KEY_3,				KEYCODE_3 },
-	{ "4",			KEY_4,				KEYCODE_4 },
-	{ "5",			KEY_5,				KEYCODE_5 },
-	{ "6",			KEY_6,				KEYCODE_6 },
-	{ "7",			KEY_7,				KEYCODE_7 },
-	{ "8",			KEY_8,				KEYCODE_8 },
-	{ "9",			KEY_9,				KEYCODE_9 },
-	{ "0 PAD",		KEY_0_PAD,			KEYCODE_0_PAD },
-	{ "1 PAD",		KEY_1_PAD,			KEYCODE_1_PAD },
-	{ "2 PAD",		KEY_2_PAD,			KEYCODE_2_PAD },
-	{ "3 PAD",		KEY_3_PAD,			KEYCODE_3_PAD },
-	{ "4 PAD",		KEY_4_PAD,			KEYCODE_4_PAD },
-	{ "5 PAD",		KEY_5_PAD,			KEYCODE_5_PAD },
-	{ "6 PAD",		KEY_6_PAD,			KEYCODE_6_PAD },
-	{ "7 PAD",		KEY_7_PAD,			KEYCODE_7_PAD },
-	{ "8 PAD",		KEY_8_PAD,			KEYCODE_8_PAD },
-	{ "9 PAD",		KEY_9_PAD,			KEYCODE_9_PAD },
-	{ "F1",			KEY_F1,				KEYCODE_F1 },
-	{ "F2",			KEY_F2,				KEYCODE_F2 },
-	{ "F3",			KEY_F3,				KEYCODE_F3 },
-	{ "F4",			KEY_F4,				KEYCODE_F4 },
-	{ "F5",			KEY_F5,				KEYCODE_F5 },
-	{ "F6",			KEY_F6,				KEYCODE_F6 },
-	{ "F7",			KEY_F7,				KEYCODE_F7 },
-	{ "F8",			KEY_F8,				KEYCODE_F8 },
-	{ "F9",			KEY_F9,				KEYCODE_F9 },
-	{ "F10",		KEY_F10,			KEYCODE_F10 },
-	{ "F11",		KEY_F11,			KEYCODE_F11 },
-	{ "F12",		KEY_F12,			KEYCODE_F12 },
-	{ "ESC",		KEY_ESC,			KEYCODE_ESC },
-	{ "~",			KEY_TILDE,			KEYCODE_TILDE },
-	{ "-",          	KEY_MINUS,          		KEYCODE_MINUS },
-	{ "=",          	KEY_EQUALS,         		KEYCODE_EQUALS },
-	{ "BKSPACE",		KEY_BACKSPACE,			KEYCODE_BACKSPACE },
-	{ "TAB",		KEY_TAB,			KEYCODE_TAB },
-	{ "[",          	KEY_OPENBRACE,      		KEYCODE_OPENBRACE },
-	{ "]",          	KEY_CLOSEBRACE,     		KEYCODE_CLOSEBRACE },
-	{ "ENTER",		KEY_ENTER,			KEYCODE_ENTER },
-	{ ";",          	KEY_COLON,          		KEYCODE_COLON },
-	{ ":",          	KEY_QUOTE,          		KEYCODE_QUOTE },
-	{ "\\",         	KEY_BACKSLASH,      		KEYCODE_BACKSLASH },
-//	{ "<",          	KEY_BACKSLASH2,     		KEYCODE_BACKSLASH2 },
-	{ ",",          	KEY_COMMA,          		KEYCODE_COMMA },
-	{ ".",          	KEY_STOP,           		KEYCODE_STOP },
-	{ "/",          	KEY_SLASH,          		KEYCODE_SLASH },
-	{ "SPACE",		KEY_SPACE,			KEYCODE_SPACE },
-	{ "INS",		KEY_INSERT,			KEYCODE_INSERT },
-	{ "DEL",		KEY_DEL,			KEYCODE_DEL },
-	{ "HOME",		KEY_HOME,			KEYCODE_HOME },
-	{ "END",		KEY_END,			KEYCODE_END },
-	{ "PGUP",		KEY_PGUP,			KEYCODE_PGUP },
-	{ "PGDN",		KEY_PGDN,			KEYCODE_PGDN },
-	{ "LEFT",		KEY_LEFT,			KEYCODE_LEFT },
-	{ "RIGHT",		KEY_RIGHT,			KEYCODE_RIGHT },
-	{ "UP",			KEY_UP,				KEYCODE_UP },
-	{ "DOWN",		KEY_DOWN,			KEYCODE_DOWN },
-	{ "/ PAD",      	KEY_SLASH_PAD,      		KEYCODE_SLASH_PAD },
-	{ "* PAD",      	KEY_ASTERISK,       		KEYCODE_ASTERISK },
-	{ "- PAD",      	KEY_MINUS_PAD,      		KEYCODE_MINUS_PAD },
-	{ "+ PAD",      	KEY_PLUS_PAD,       		KEYCODE_PLUS_PAD },
-	{ ". PAD",      	KEY_DEL_PAD,        		KEYCODE_DEL_PAD },
-	{ "ENTER PAD",  	KEY_ENTER_PAD,      		KEYCODE_ENTER_PAD },
-	{ "PRTSCR",     	KEY_PRTSCR,         		KEYCODE_PRTSCR },
-	{ "PAUSE",      	KEY_PAUSE,          		KEYCODE_PAUSE },
-	{ "LSHIFT",		KEY_LSHIFT,			KEYCODE_LSHIFT },
-	{ "RSHIFT",		KEY_RSHIFT,			KEYCODE_RSHIFT },
-	{ "LCTRL",		KEY_LCONTROL,			KEYCODE_LCONTROL },
-	{ "RCTRL",		KEY_RCONTROL,			KEYCODE_RCONTROL },
-	{ "ALT",		KEY_ALT,			KEYCODE_LALT },
-	{ "ALTGR",		KEY_ALTGR,			KEYCODE_RALT },
-	{ "LWIN",		KEY_LWIN,			KEYCODE_OTHER },
-	{ "RWIN",		KEY_RWIN,			KEYCODE_OTHER },
-	{ "MENU",		KEY_MENU,			KEYCODE_OTHER },
-	{ "SCRLOCK",    	KEY_SCRLOCK,        		KEYCODE_SCRLOCK },
-	{ "NUMLOCK",    	KEY_NUMLOCK,        		KEYCODE_NUMLOCK },
-	{ "CAPSLOCK",   	KEY_CAPSLOCK,       		KEYCODE_CAPSLOCK },
-	{ 0, 0, 0 }	/* end of table */
-};
+int use_mouse;
+// Delivered from the command line!
+int joystick;
+int num_joysticks=4;
 
 /* return a list of all available keys */
 const struct KeyboardInfo *osd_get_key_list(void)
 {
-	return keylist;
+	return odx_window_get_keyboard_info();
 }
 
 int osd_is_key_pressed(int keycode)
 {
-	if (keycode >= KEY_MAX) return 0;
 	return odx_key_pressed(keycode);
 }
 
@@ -370,15 +260,8 @@ int osd_is_joy_pressed(int joycode)
 void osd_poll_joysticks(void)
 {
   odx_keyboard_read();
+  odx_poll_joysticks();
 }
-
-/* return a value in the range -128 .. 128 (yes, 128, not 127) */
-void osd_analogjoy_read(int player,int *analog_x, int *analog_y)
-{
-	*analog_x = axis_x[player];
-	*analog_y = axis_y[player];
-}
-
 
 int osd_joystick_needs_calibration (void)
 {

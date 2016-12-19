@@ -25,12 +25,8 @@
 
 #include "minimal.h"
 
-SDL_Window *sdlWindow;
-SDL_Renderer *sdlRenderer;
-SDL_Texture *sdlTexture;
 COL_Renderer *colRenderer;
 
-SDL_Event			event;
 const unsigned char 	*keystates = 0;
 
 volatile unsigned int	odx_palette[512];
@@ -40,7 +36,6 @@ int						odx_clock=366;
 
 int						rotate_controls=0;
 unsigned char			odx_keys[OD_KEY_MAX];
-SDL_Joystick			*odx_joyanalog[] = {0,0};
 
 bool ui_exit = false;
 
@@ -72,20 +67,10 @@ void odx_get_render_dest(
 {
   int win_x, win_y;
   int win_w, win_h;
-  SDL_GetWindowSize(sdlWindow, &win_w, &win_h);
-  SDL_GetWindowPosition(sdlWindow, &win_x, &win_y);  
+  odx_window_pos(&win_x, &win_y, &win_w, &win_h);
   
-  printf("SDL_GetWindowPosition %d,%d\n", win_x, win_y);  
-  
-  int flags = SDL_GetWindowFlags(sdlWindow);
-    
-  // Add window border offset
-  
-  if(!(flags & SDL_WINDOW_BORDERLESS)) {
-    win_x += 1;  // TODO Find out where to get the SDL window left border width from
-    win_y += 30; // TODO Find out where to get the SDL window top border hight from
-  }
-  
+  printf("WIN x=%d, y=%d, w=%d, h=%d\n", win_x,win_y,win_w,win_h);
+ 
   int x,y;
   unsigned int w,h;
   if((tex_w * win_h) > (win_w * tex_h)) {
@@ -109,11 +94,13 @@ void odx_get_render_dest(
   *dy = y;
   *dh = h;
   *dw = w;
+  
+  printf("RENDER x=%d, y=%d, w=%d, h=%d\n", x,y,w,h);
+  
 }
 
 void odx_clear_background() {
-  SDL_RenderClear(sdlRenderer);
-  SDL_RenderPresent(sdlRenderer);
+	// TODO remove
 }
 
 void odx_updateWindowPosition() {
@@ -127,84 +114,18 @@ void odx_updateWindowPosition() {
 
 unsigned int odx_keyboard_read()
 {
+	odx_window_process_events();
+	
 	unsigned int res = 0;
-
-	while(SDL_PollEvent(&event)) {
-    switch(event.type) {
-      case SDL_WINDOWEVENT:
-      {
-        SDL_WindowEvent *window_event = &event.window;
-        switch (window_event->event) {
-          case SDL_WINDOWEVENT_SHOWN:
-              printf("Window %d shown\n", window_event->windowID);
-              break;
-          case SDL_WINDOWEVENT_HIDDEN:
-              printf("Window %d hidden\n", window_event->windowID);
-              break;
-          case SDL_WINDOWEVENT_EXPOSED:
-              printf("Window %d exposed\n", window_event->windowID);
-              odx_clear_background();
-              break;
-          case SDL_WINDOWEVENT_MOVED:
-              printf("Window %d moved to %d,%d\n",
-                      window_event->windowID, window_event->data1,
-                      window_event->data2);
-              odx_updateWindowPosition();                    
-              break;
-          case SDL_WINDOWEVENT_RESIZED:
-              printf("Window %d resized to %dx%d\n",
-                      window_event->windowID, window_event->data1,
-                      window_event->data2);
-              odx_updateWindowPosition();       
-              odx_clear_background();
-                           
-              break;
-          case SDL_WINDOWEVENT_MINIMIZED:
-              printf("Window %d minimized\n", window_event->windowID);
-              break;
-          case SDL_WINDOWEVENT_MAXIMIZED:
-              printf("Window %d maximized\n", window_event->windowID);
-              break;
-          case SDL_WINDOWEVENT_RESTORED:
-              printf("Window %d restored\n", window_event->windowID);
-              break;
-          case SDL_WINDOWEVENT_ENTER:
-              printf("Mouse entered window %d\n",
-                      window_event->windowID);
-              break;
-          case SDL_WINDOWEVENT_LEAVE:
-              printf("Mouse left window %d\n", window_event->windowID);
-              break;
-          case SDL_WINDOWEVENT_FOCUS_GAINED:
-              printf("Window %d gained keyboard focus\n",
-                      window_event->windowID);
-              break;
-          case SDL_WINDOWEVENT_FOCUS_LOST:
-              printf("Window %d lost keyboard focus\n",
-                      window_event->windowID);
-              break;
-          case SDL_WINDOWEVENT_CLOSE:
-              printf("Window %d closed\n", window_event->windowID);
-              ui_exit = true;
-              break;
-          default:
-              printf("Window %d got unknown event %d\n",
-                      window_event->windowID, window_event->event);
-              break;
-          }
-        }  
-        break;
-      default:
-      break;
-    }
-  }
-  
+/* TODO
 	keystates = SDL_GetKeyboardState(NULL);
 
+// TODO
 	if (keystates[SDL_SCANCODE_Q] == SDL_PRESSED) {
         ui_exit = true;
 	}
 
+// TODO
 	// Keys for file chooser only...
 	if(keystates[SDL_SCANCODE_LEFT] == SDL_PRESSED) res |= OD_LEFT;
 	if(keystates[SDL_SCANCODE_RIGHT] == SDL_PRESSED)res |= OD_RIGHT;
@@ -213,73 +134,12 @@ unsigned int odx_keyboard_read()
 	if(keystates[SDL_SCANCODE_RETURN] == SDL_PRESSED) res |= OD_A;
 	if(keystates[SDL_SCANCODE_ESCAPE] == SDL_PRESSED) res |= OD_B;
 	if(keystates[SDL_SCANCODE_SPACE] == SDL_PRESSED) res |= OD_START;
-	
+	*/
 	return res;
 }
 
 bool odx_key_pressed(int keycode) {
-	if(keystates == 0) return false;
-	return keystates[keycode] == SDL_PRESSED;
-}
-
-bool odx_is_joy_button_pressed(int index, int button) {
-    SDL_Joystick *joystick = odx_joyanalog[index];
-    return (joystick != NULL) && SDL_JoystickGetButton(joystick, button);
-}
-
-bool odx_is_joy_axis_pressed (int index, int axis, int dir){
-    
-    SDL_Joystick *joystick = odx_joyanalog[index];
-    if(joystick == NULL) return 0;
-    int v = SDL_JoystickGetAxis(joystick, axis);
-    switch (dir)
-    {
-        case 2: return v > +32; break;
-        case 1: return v < -32; break;
-        default: break;
-    }
- 	return 0;   
-}
-
-// For front end only
-unsigned int odx_joystick_read(unsigned int index)
-{
- 	unsigned int res=0;
-  
-	// manage joystick
-  SDL_Joystick *joystick = odx_joyanalog[index];
-	if (joystick) {
-		if (!rotate_controls) {
-			axis_x[index] = SDL_JoystickGetAxis(joystick, 0)/256;
-			axis_y[index] = SDL_JoystickGetAxis(joystick, 1)/256;
-			if (axis_x[index] < -32) { res |=  OD_LEFT;  } // LEFT
-			if (axis_x[index] > 32) { res |=  OD_RIGHT; } // RIGHT
-			if (axis_y[index] < -32) { res |=  OD_UP;  } // UP
-			if (axis_y[index] > 32) { res |=  OD_DOWN;  } // DOWN
-		}
-		else {
-			axis_x[index] = SDL_JoystickGetAxis(joystick, 1)/256;
-			axis_y[index] = SDL_JoystickGetAxis(joystick, 0)/256;
-			if (axis_y[index] < -32) res |= OD_LEFT;
-			if (axis_y[index] >  32) res |= OD_RIGHT;
-			if (axis_x[index] < -32) res |= OD_UP;
-			if (axis_x[index] >  32) res |= OD_DOWN;
-		}
-		
-		if (SDL_JoystickGetButton(joystick,0)) { res |=  OD_A;  }  // BUTTON A
-		if (SDL_JoystickGetButton(joystick,1)) { res |=  OD_B; }  // BUTTON B
-
-		if (SDL_JoystickGetButton(joystick,2)) { res |=  OD_X;  }  // BUTTON X
-		if (SDL_JoystickGetButton(joystick,3))  { res |=  OD_Y;  }   // BUTTON Y
-
-		if (SDL_JoystickGetButton(joystick,4))  { res |=  OD_R;  }  // BUTTON R
-		if (SDL_JoystickGetButton(joystick,5))  { res |=  OD_L;  }  // BUTTON L
-
-		if (SDL_JoystickGetButton(joystick,6))  { res |=  OD_START; } // START
-		if (SDL_JoystickGetButton(joystick,7)) { res |=  OD_SELECT; } // SELECT
-	}
-  // printf("keystat %#010x \n", res);   
-	return res;
+	return odx_window_is_key_pressed(keycode);
 }
 
 unsigned int odx_joystick_press ()
@@ -302,6 +162,10 @@ void odx_video_wait_vsync(void)
 {
 }
 
+void odx_window_position_listener(int x, int y, int w, int h) {
+  odx_updateWindowPosition();
+}
+
 void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int Hz, bool fullscreen)
 {
   printf("odx-init\n");
@@ -311,68 +175,19 @@ void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int
 		odx_keys[i] = 0;
 	}
   // Initialize SDL.
-  if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_JOYSTICK|SDL_INIT_AUDIO) < 0) {
+  if (SDL_Init(SDL_INIT_AUDIO) < 0) {
           exit(1);
   }
   
-  SDL_RendererInfo rendererInfo;
-  int sdlRendererIndex;
-  for(sdlRendererIndex=0; ;++sdlRendererIndex) {
-    if(0!=SDL_GetRenderDriverInfo(sdlRendererIndex, &rendererInfo)) {
-      printf("Could not find required driver\n");
-      exit(1);
-    }
-    printf("Found software driver at index %d with name %s\n", sdlRendererIndex, rendererInfo.name);  
+  odx_window_create(fullscreen, odx_window_position_listener); 
 
-    if(strcmp(rendererInfo.name, "software")==0) {
-        break;
-    }
-  }  
-
-  printf("Using software driver at index %d with name %s\n", sdlRendererIndex, rendererInfo.name);  
-   
-  sdlWindow = SDL_CreateWindow(
-    "Mame4Cubie", 
-    SDL_WINDOWPOS_UNDEFINED, 
-    SDL_WINDOWPOS_UNDEFINED, 
-    fullscreen ? 1280 : 1024, 
-    fullscreen ? 800 : 768, 
-    fullscreen ? SDL_WINDOW_BORDERLESS|SDL_WINDOW_FULLSCREEN : SDL_WINDOW_RESIZABLE);
-      
-  printf("Created window\n"); 
-     
-  sdlRenderer = SDL_CreateRenderer(sdlWindow, sdlRendererIndex, 0);
-  
-  printf("Created renderer %ld\n", sdlRenderer);
-  
-  SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
-  
   odx_clear_background();
   
   colRenderer = COL_CreateRenderer(); 
+  
   printf("Created col renderer %ld\n", colRenderer);
   
 	/* General video & audio stuff */
-
-  printf("Found %d joysticks\n", SDL_NumJoysticks());
-	
-  for(int i = 0; i < 2; ++i) {
-    odx_joyanalog[i] = SDL_JoystickOpen(i);
-    if (odx_joyanalog[i] != NULL )  {
-          printf("Opened Joystick 0\n");
-          printf("Name: %s\n", SDL_JoystickNameForIndex(i));
-          printf("Number of Axes: %d\n", SDL_JoystickNumAxes(odx_joyanalog[i]));
-          printf("Number of Buttons: %d\n", SDL_JoystickNumButtons(odx_joyanalog[i]));
-          printf("Number of Balls: %d\n", SDL_JoystickNumBalls(odx_joyanalog[i]));
-    }     
-  }
-  
-	SDL_EventState(SDL_MOUSEMOTION,SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONDOWN,SDL_IGNORE);
-	SDL_EventState(SDL_MOUSEBUTTONUP,SDL_IGNORE);
-	SDL_EventState(SDL_SYSWMEVENT,SDL_IGNORE);
-	SDL_EventState(SDL_USEREVENT,SDL_IGNORE);
-	SDL_ShowCursor(SDL_DISABLE);
 
 	odx_sound_init(rate, bits, stereo);
 
@@ -391,7 +206,7 @@ printf("odx_deinit(void).\n");
 
 	odx_sound_thread_stop();
 	COL_DestroyRenderer(colRenderer);
-	SDL_QuitSubSystem(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_JOYSTICK);
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 void odx_set_clock(int mhz)
@@ -404,15 +219,14 @@ void odx_set_video_mode(int bpp,int width,int height)
   printf("void odx_set_video_mode(int bpp %d,int width %d,int height %d)\n", bpp, width, height);
   
   int x,y,w,h;
-  SDL_GetWindowSize(sdlWindow, &w, &h);
-  SDL_GetWindowPosition(sdlWindow, &x, &y);  
+  odx_window_pos(&x, &y, &w, &h);
   
   int dx,dy;
   unsigned int dw,dh;
   odx_get_render_dest(&dx, &dy, &dw, &dh, width, height);
   COL_CreateTexture(colRenderer, width, height, dx, dy, dw, dh);
                                
-  printf("Created COL texture format %d\n",  SDL_PIXELFORMAT_ARGB8888);
+  printf("Created COL texture format\n");
 
   odx_clear_video();
 }
