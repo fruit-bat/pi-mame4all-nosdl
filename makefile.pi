@@ -60,7 +60,7 @@ OBJDIRS = $(OBJ) $(OBJ)/cpu $(OBJ)/sound $(OBJ)/$(MAMEOS) \
 	$(OBJ)/drivers $(OBJ)/machine $(OBJ)/vidhrdw $(OBJ)/sndhrdw \
 	$(OBJ)/zlib
 
-all:	maketree $(DISTRIB_EMULATOR) $(DISTRIB_EMULATOR).dge
+all:	maketree $(DISTRIB_EMULATOR)
 
 # include the various .mak files
 include src/core.mak

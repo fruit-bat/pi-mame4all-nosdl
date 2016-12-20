@@ -5,7 +5,7 @@ struct driver {
 	int available;
 };
  
-#define NUMGAMES (2287+3+2+2+1+1+1+1+1)
+#define NUMGAMES (2287+3+2+2+1+1+1+1+1+1)
 
 struct driver odx_drivers[NUMGAMES] = {
 
@@ -1335,6 +1335,7 @@ struct driver odx_drivers[NUMGAMES] = {
 { "Pac-Land (set 3)"                                                                                      ,"pacland3"     , "mame", 0 } ,												
 { "Pac-Man & Chomp Chomp"                                                                                 ,"pacnchmp"     , "mame", 0 } ,												
 { "Pac-Man (Hearts)"                                                                                      ,"pacheart"     , "mame", 0 } ,												
+{ "Pac-Man"                                                                                               ,"pacman"       , "mame", 0 } ,												
 { "Pac-Man (Midway)"                                                                                      ,"pacmanm"      , "mame", 0 } ,												
 { "Pac-Man (Midway, harder)"                                                                              ,"pacmod"       , "mame", 0 } ,												
 { "Pac-Man (bootleg on Galaxian hardware)"                                                                ,"pacmanbl"     , "mame", 0 } ,												

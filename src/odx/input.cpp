@@ -74,6 +74,8 @@ static int joyequiv[][2] =
 	{ JOYCODE(1,0,6,0),	JOYCODE_1_BUTTON6 },
 	{ JOYCODE(1,0,7,0),	JOYCODE_1_BUTTON7 },
 	{ JOYCODE(1,0,8,0),	JOYCODE_1_BUTTON8 },
+	{ JOYCODE(1,0,9,0),	JOYCODE_1_BUTTON9 },
+	{ JOYCODE(1,0,10,0),JOYCODE_1_BUTTON10 },
 	{ JOYCODE(2,1,1,1),	JOYCODE_2_LEFT },
 	{ JOYCODE(2,1,1,2),	JOYCODE_2_RIGHT },
 	{ JOYCODE(2,1,2,1),	JOYCODE_2_UP },
@@ -86,6 +88,8 @@ static int joyequiv[][2] =
 	{ JOYCODE(2,0,6,0),	JOYCODE_2_BUTTON6 },
 	{ JOYCODE(2,0,7,0),	JOYCODE_2_BUTTON7 },
 	{ JOYCODE(2,0,8,0),	JOYCODE_2_BUTTON8 },
+	{ JOYCODE(2,0,9,0),	JOYCODE_2_BUTTON9 },
+	{ JOYCODE(2,0,10,0),JOYCODE_2_BUTTON10 },
 	{ JOYCODE(3,1,1,1),	JOYCODE_3_LEFT },
 	{ JOYCODE(3,1,1,2),	JOYCODE_3_RIGHT },
 	{ JOYCODE(3,1,2,1),	JOYCODE_3_UP },
@@ -98,6 +102,8 @@ static int joyequiv[][2] =
 	{ JOYCODE(3,0,6,0),	JOYCODE_3_BUTTON6 },
 	{ JOYCODE(3,0,7,0),	JOYCODE_3_BUTTON7 },
 	{ JOYCODE(3,0,8,0),	JOYCODE_3_BUTTON8 },
+	{ JOYCODE(3,0,9,0),	JOYCODE_3_BUTTON9 },
+	{ JOYCODE(3,0,10,0),JOYCODE_3_BUTTON10 },
 	{ JOYCODE(4,1,1,1),	JOYCODE_4_LEFT },
 	{ JOYCODE(4,1,1,2),	JOYCODE_4_RIGHT },
 	{ JOYCODE(4,1,2,1),	JOYCODE_4_UP },
@@ -110,6 +116,8 @@ static int joyequiv[][2] =
 	{ JOYCODE(4,0,6,0),	JOYCODE_4_BUTTON6 },
 	{ JOYCODE(4,0,7,0),	JOYCODE_4_BUTTON7 },
 	{ JOYCODE(4,0,8,0),	JOYCODE_4_BUTTON8 },
+	{ JOYCODE(4,0,9,0),	JOYCODE_4_BUTTON9 },
+	{ JOYCODE(4,0,10,0),JOYCODE_4_BUTTON10 },
 	{ 0,0 }
 };
 
@@ -164,7 +172,7 @@ static void init_joy_list(void)
 				tot++;
 			}
 		}
-		for (j = 0;j < 8;j++)
+		for (j = 0;j < 10;j++)
 		{
 			sprintf(buf,"J%d %s",i+1,"JoystickButton");
 			strncpy(joynames[tot],buf,MAX_JOY_NAME_LEN);
@@ -240,11 +248,8 @@ int osd_is_joy_pressed(int joycode)
 		int button;
 
 		button = GET_JOYCODE_BUTTON(joycode);
-		if (button == 0 || button > 8)
-			return 0;
-		button--;
 
-        return odx_is_joy_button_pressed (joy_num, button);
+        return odx_is_joy_button_pressed (joy_num, button - 1);
 	}
 	else
 	{

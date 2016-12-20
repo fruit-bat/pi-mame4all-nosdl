@@ -49,66 +49,53 @@ char romdir[512];
 extern bool ui_exit;
 
 inline bool isJoyPressed_A(const int ExKey) {
-	if(ExKey & OD_A) printf("Joy A\n");
 	return ExKey & OD_A;
 }
 
 inline bool isJoyPressed_B(const int ExKey) {
-	if(ExKey & OD_B) printf("Joy B\n");
 	return ExKey & OD_B;
 }
 
 inline bool isJoyPressed_X(const int ExKey) {
-	if(ExKey & OD_X) printf("Joy X\n");
 	return ExKey & OD_X;
 }
 
 inline bool isJoyPressed_Y(const int ExKey) {
-	if(ExKey & OD_Y) printf("Joy Y\n");
 	return ExKey & OD_Y;
 }
 
 inline bool isJoyPressed_START(const int ExKey) {
-	if(ExKey & OD_START) printf("Joy START\n");
 	return ExKey & OD_START;
 }
 
 inline bool isJoyPressed_SELECT(const int ExKey) {
-	if(ExKey & OD_SELECT) printf("Joy SELECT\n");
 	return ExKey & OD_SELECT;
 }
 
 inline bool isJoyPressed_L(const int ExKey) {
-	if(ExKey & OD_L) printf("Joy L\n");
 	return ExKey & OD_L;
 }
 
 inline bool isJoyPressed_R(const int ExKey) {
-	if(ExKey & OD_R) printf("Joy R\n");
 	return ExKey & OD_R;
 }
 
 inline bool isJoyPressed_LEFT(const int ExKey) {
-	if(ExKey & OD_LEFT) printf("Joy LEFT\n");
 	return ExKey & OD_LEFT;
 }
 
 inline bool isJoyPressed_RIGHT(const int ExKey) {
-	if(ExKey & OD_RIGHT) printf("Joy RIGHT\n");
 	return ExKey & OD_RIGHT;
 }
 
 inline bool isJoyPressed_UP(const int ExKey) {
-	if(ExKey & OD_UP) printf("Joy UP\n");
 	return ExKey & OD_UP;
 }
 
 inline bool isJoyPressed_DOWN(const int ExKey) {
-	if(ExKey & OD_DOWN) printf("Joy DOWN\n");
 	return ExKey & OD_DOWN;
 }
 
-// TODO should this jist be odx_joystick_press?
 unsigned int frontend_joystick_press ()
 {
 	unsigned int ExKey = odx_joystick_press();
@@ -160,32 +147,19 @@ printf("odx_intro_screen(void)\n");
 	if (f) {
 		fread(splash_bmp,1,BMP_SIZE,f);
 		fclose(f);
-printf("odx_intro_screen(void) - read splash image ok\n");  
 	}
-    else {
-printf("odx_intro_screen(void) - failed to read splash image\n");          
-    }
     
-printf("odx_intro_screen(void) - 1\n");
 	blit_bmp_8bpp(splash_bmp);
-printf("odx_intro_screen(void) - 2\n");
 	odx_gamelist_text_out(1,230,frontend_build_version);
-printf("odx_intro_screen(void) - 3\n");
 	odx_video_flip();
-printf("odx_intro_screen(void) - 4\n");
 	frontend_joystick_press();
-printf("odx_intro_screen(void) - 5\n");
 	
 	sprintf(name,"skins/menu.bmp");
 	f=fopen(name,"rb");
 	if (f) {
 		fread(menu_bmp,1,BMP_SIZE,f);
 		fclose(f);
-printf("odx_intro_screen(void) - read menu image ok\n");  
 	}
-    else {
-printf("odx_intro_screen(void) - failed to read menu image\n");          
-    }
 }
 
 static void game_list_init_nocache(void)
