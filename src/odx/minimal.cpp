@@ -118,6 +118,7 @@ unsigned int odx_joystick_press ()
 	
 	while (true) { 
 		odx_window_process_events();
+		odx_poll_joysticks();
 
 		if (odx_window_is_standard_key_pressed(KEYCODE_Q)) {
 			ui_exit = true;
@@ -133,6 +134,14 @@ unsigned int odx_joystick_press ()
 		if(odx_window_is_standard_key_pressed(KEYCODE_ESC))   ExKey |= OD_B;
 		if(odx_window_is_standard_key_pressed(KEYCODE_SPACE)) ExKey |= OD_START;	
 				
+		if(odx_is_joy_pressed_by_standardcode(JOYCODE_1_UP))      ExKey |= OD_UP;		
+		if(odx_is_joy_pressed_by_standardcode(JOYCODE_1_DOWN))    ExKey |= OD_DOWN;		
+		if(odx_is_joy_pressed_by_standardcode(JOYCODE_1_LEFT))    ExKey |= OD_LEFT;		
+		if(odx_is_joy_pressed_by_standardcode(JOYCODE_1_RIGHT))   ExKey |= OD_RIGHT;		
+		if(odx_is_joy_pressed_by_standardcode(JOYCODE_1_BUTTON1)) ExKey |= OD_A;
+		if(odx_is_joy_pressed_by_standardcode(JOYCODE_1_BUTTON2)) ExKey |= OD_B;
+		if(odx_is_joy_pressed_by_standardcode(JOYCODE_1_BUTTON3)) ExKey |= OD_START;	
+			
 		if(ExKey != lastkey) {
 			lastkey = ExKey;
 			if(ExKey != 0) return ExKey;
@@ -182,6 +191,7 @@ void odx_deinit(void)
 printf("odx_deinit(void).\n");	
 
 	odx_sound_thread_stop();
+	// Need to work out if this has been initialised! Seg fault
 	COL_DestroyRenderer(colRenderer);
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 	odx_window_destroy();
@@ -202,6 +212,7 @@ void odx_set_video_mode(int bpp,int width,int height)
   int dx,dy;
   unsigned int dw,dh;
   odx_get_render_dest(&dx, &dy, &dw, &dh, width, height);
+  COL_DestroyTexture(colRenderer);
   COL_CreateTexture(colRenderer, width, height, dx, dy, dw, dh);
                                
   printf("Created COL texture format\n");

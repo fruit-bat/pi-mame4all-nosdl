@@ -16,7 +16,7 @@
 
 #define COMPATCORES 1
 
-char build_version[] = "GCW0 V1.1";
+char frontend_build_version[] = "GCW0 V1.1";
 
 static unsigned char splash_bmp[BMP_SIZE];
 static unsigned char menu_bmp[BMP_SIZE];
@@ -43,8 +43,6 @@ int odx_cpu_cores=1;
 int odx_ramtweaks=0;
 int odx_cheat=0;
 int odx_gsensor=0;
-
-int master_volume = 100;
 
 char romdir[512];
 
@@ -171,7 +169,7 @@ printf("odx_intro_screen(void) - failed to read splash image\n");
 printf("odx_intro_screen(void) - 1\n");
 	blit_bmp_8bpp(splash_bmp);
 printf("odx_intro_screen(void) - 2\n");
-	odx_gamelist_text_out(1,230,build_version);
+	odx_gamelist_text_out(1,230,frontend_build_version);
 printf("odx_intro_screen(void) - 3\n");
 	odx_video_flip();
 printf("odx_intro_screen(void) - 4\n");
@@ -285,9 +283,9 @@ static void game_list_view(int *pos) {
 
 	/* draw text */
 	odx_gamelist_text_out( 4, 30,"Select ROM");
-	odx_gamelist_text_out( 4, 230,"A=Select Game/Start  B=Back");
-	odx_gamelist_text_out( 268, 230,"L+R=Exit");
-	odx_gamelist_text_out( 264,2,build_version);
+	odx_gamelist_text_out( 4, 230,"1=Select Game/Start  2=Back");
+	odx_gamelist_text_out( 268, 230,"  Q=Exit");
+	odx_gamelist_text_out( 264,2,frontend_build_version);
 
 	/* Check Limits */
 	if (*pos<0)
@@ -386,9 +384,9 @@ static int show_options(char *game)
 
 		/* draw text */
 		odx_gamelist_text_out( 4, 30,"Game Options");
-		odx_gamelist_text_out( 4, 230,"A=Select Game/Start  B=Back");
-		odx_gamelist_text_out( 268, 230,"L+R=Exit");
-		odx_gamelist_text_out( 264,2,build_version);
+		odx_gamelist_text_out( 4, 230,"1=Select Game/Start  2=Back");
+		odx_gamelist_text_out( 268, 230,"  Q=Exit");
+		odx_gamelist_text_out( 264,2,frontend_build_version);
 
 		/* Draw the options */
 		strncpy (text,game_list_description(last_game_selected),33);
@@ -676,9 +674,9 @@ static void select_game(char *emu, char *game)
 	}
 }
 
-void execute_game (char *playemu, char *playgame)
+void execute_game (char *playemu, char *playgame, int *argc, char ***argv)
 {
-	char *args[255];
+	static char *args[255];
 	char str[8][64];
 	int n=0;
 	int i=0;
@@ -875,9 +873,8 @@ void execute_game (char *playemu, char *playgame)
 	fprintf(stderr,"\n");
 	fflush(stderr);
 #endif
-	odx_deinit();
-
-	execv(args[0], args); 
+	*argc = n;
+	*argv = args;
 }
 
  
@@ -973,7 +970,7 @@ signed int get_romdir(char *result) {
 			odx_gamelist_text_out( 4, 215,current_dir_short );
 			odx_gamelist_text_out( 4, 230,"A=Enter dir START=Select dir");
 			odx_gamelist_text_out( 280, 230,"B=Quit");
-			odx_gamelist_text_out( 264,2,build_version);
+			odx_gamelist_text_out( 264,2,frontend_build_version);
 			for(i = 0, current_filedir_number = i + current_filedir_scroll_value; i < FILE_LIST_ROWS; i++, current_filedir_number++) {
 #define CHARLEN ((ODX_SCREEN_WIDTH/6)-2)
 				if(current_filedir_number < num_filedir) {
@@ -1091,23 +1088,14 @@ void gethomedir(char *dir, char* name) {
 	}
 }
 
-int main (int argc, char **argv)
+int frontend_main (int argc, char **argv, int *front_argc, char ***front_argv, bool show_intro)
 {
 	char text[512], curDir[512];
 	FILE *f;
 
-	for (int i = 1;i < argc;i++) 
-	{
-		if (strcasecmp(argv[i],"-fullscreen") == 0)
-			fullscreen=true;
-	}
-    
 	/* get initial home directory */
 	gethomedir(mamedir,"mame4all");
 	strcpy(romdir,"");
-	
-	/* Open dingux Initialization */
-	odx_init(1000,16,44100,16,0,60, fullscreen);
 	
 	odx_set_video_mode(8,ODX_SCREEN_WIDTH,ODX_SCREEN_HEIGHT);
 
@@ -1118,7 +1106,9 @@ int main (int argc, char **argv)
 	odx_clear_video();
 	
 	/* Show intro screen */
-	odx_intro_screen();
+	if(show_intro) {
+		odx_intro_screen();
+	}
 
 	/* Read default configuration */
 	sprintf(text,"%s/frontend/mame.cfg",mamedir);
@@ -1164,7 +1154,7 @@ int main (int argc, char **argv)
 	}
 
 	/* Execute Game */
-	execute_game (playemu,playgame);
+	execute_game (playemu,playgame, front_argc, front_argv);
 	
-	exit (0);
+	return 0;
 }

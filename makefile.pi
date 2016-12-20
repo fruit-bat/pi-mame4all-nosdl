@@ -79,13 +79,6 @@ $(EMULATOR): $(COREOBJS) $(OSOBJS) $(DRVOBJS)
 $(DISTRIB_EMULATOR) : $(EMULATOR)	
 	$(CP) $(EMULATOR) distrib/mame4all/$(EMULATOR)
 	
-$(DISTRIB_EMULATOR).dge : $(EMULATOR).dge	
-	$(CP) $(EMULATOR).dge distrib/mame4all/$(EMULATOR).dge
-	
-$(EMULATOR).dge: $(FEOBJS)
-	@echo Linking $@ ...
-	$(LD) $(LDFLAGS) $(FEOBJS) $(LIBS) -o $@
-
 $(OBJ)/%.o: src/%.c
 	@echo Compiling $<...
 	$(CC) $(CDEFS) $(CFLAGS) -c $< -o $@

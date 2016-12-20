@@ -113,6 +113,17 @@ static int joyequiv[][2] =
 	{ 0,0 }
 };
 
+static int joy_standardcode_to_joycode(int standardcode) {
+	for(int i = 0; joyequiv[i][1] != 0; ++i) {
+		if(standardcode == joyequiv[i][1]) return joyequiv[i][0];
+	}
+	return 0;
+}
+
+bool odx_is_joy_pressed_by_standardcode(int standardcode) {
+	int joycode = joy_standardcode_to_joycode(standardcode);
+	return osd_is_joy_pressed(joycode);
+}
 
 static void init_joy_list(void)
 {

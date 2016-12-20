@@ -270,7 +270,8 @@ COL_RenderCopyAndPresent(COL_Renderer *const renderer)
 void
 COL_DestroyTexture(COL_Renderer * renderer)
 {
-	
+  COL_Texture *const col_texture = renderer->texture;
+  if(col_texture != NULL) {  
 	int ret;
 	printf("Shuting down dispmanx\n");
 	dispman_update = vc_dispmanx_update_start( 0 );
@@ -289,8 +290,7 @@ COL_DestroyTexture(COL_Renderer * renderer)
 	ret = vc_dispmanx_update_submit_sync( dispman_update );
 	assert(ret == 0);
 
-  COL_Texture *const col_texture = renderer->texture;
-  if(col_texture) {  
+
     COL_TextureFree(col_texture);
     renderer->texture = 0;
   }

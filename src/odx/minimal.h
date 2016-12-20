@@ -68,7 +68,7 @@ extern unsigned int odx_joystick_read(unsigned int index);
 extern bool odx_is_joy_button_pressed(int index, int button);
 extern bool odx_is_joy_axis_pressed (int index, int axis, int dir);
 extern void odx_poll_joysticks();
-
+extern bool odx_is_joy_pressed_by_standardcode(int standardcode);
 
 extern unsigned int odx_joystick_press();
 
@@ -106,6 +106,8 @@ extern void odx_gamelist_text_out_fmt(int x, int y, char* fmt, ...);
 extern bool odx_key_pressed(int keycode);
 
 extern int abs_x, abs_y, abs_z;
+
+extern int frontend_main (int argc, char **argv, int *front_argc, char ***front_argv, bool show_intro);
 
 #define odx_video_setpalette()  { }
 
