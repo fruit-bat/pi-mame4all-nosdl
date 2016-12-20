@@ -156,7 +156,7 @@ int main (int main_argc, char **main_argv)
 		}
 	}
 
-	while(frontend) {
+	while(true) {
 		game_index = -1;
 		
 		/* handle playback which is not available in mame.cfg */
@@ -381,6 +381,9 @@ int main (int main_argc, char **main_argv)
 		
 		if(frontend) {
 			frontend_main(main_argc, main_argv, &argc, &argv, false);			
+		}
+		else {
+			break;
 		}
 	}
    	odx_deinit();
