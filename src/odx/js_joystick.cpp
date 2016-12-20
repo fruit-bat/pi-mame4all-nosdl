@@ -136,12 +136,6 @@ void odx_poll_joysticks() {
     }
 }
 
-// For front end only
-unsigned int odx_joystick_read(unsigned int index) {
-    if(index >= NUM_JOYSTICKS) return 0;
-    return 0; // TODO
-}
-
 bool odx_is_joy_button_pressed(int index, int button) {
     if(index >= NUM_JOYSTICKS) return false;
     return js_joysticks[index].is_button_pressed(button);

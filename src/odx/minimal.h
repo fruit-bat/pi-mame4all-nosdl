@@ -64,7 +64,6 @@ extern void odx_video_flip_single(void);
 extern void odx_video_wait_vsync(void);
 extern void odx_video_setpalette(void);
 
-extern unsigned int odx_joystick_read(unsigned int index);
 extern bool odx_is_joy_button_pressed(int index, int button);
 extern bool odx_is_joy_axis_pressed (int index, int axis, int dir);
 extern void odx_poll_joysticks();
