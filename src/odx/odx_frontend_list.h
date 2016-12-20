@@ -7,7 +7,7 @@ struct driver {
  
 #define NUMGAMES (2287+3+2+2+1+1+1+1+1)
 
-struct driver drivers[NUMGAMES] = {
+struct driver odx_drivers[NUMGAMES] = {
 
 { "'88 Games"                                                                                             ,"88games"      , "mame", 0 } ,												
 { "'99 The Last War (alternate)"                                                                          ,"99lstwra"     , "mame", 0 } ,												

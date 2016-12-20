@@ -259,7 +259,7 @@ int osd_is_joy_pressed(int joycode)
 
 void osd_poll_joysticks(void)
 {
-  odx_keyboard_read();
+  odx_window_process_events();
   odx_poll_joysticks();
 }
 

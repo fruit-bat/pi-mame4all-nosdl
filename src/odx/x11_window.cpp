@@ -130,6 +130,7 @@ private:
     void (*position_listener_ptr)(int x, int y, int w, int h);
     KeyboardInfo *key_info;
     bool key_state[256];
+    unsigned int key_map[256];
     
 public:
 
@@ -148,13 +149,17 @@ public:
     void setup_keyinfo() {
 		unsigned int n = sizeof(XK_SYMS)/sizeof(KeyboardInfo);
 		key_info = new KeyboardInfo[n];
-		for(int i = 0; i < n; ++i) {
-			key_info[i].name = XK_SYMS[i].name;
-			key_info[i].code = XKeysymToKeycode(display, XK_SYMS[i].code);
-			key_info[i].standardcode = XK_SYMS[i].standardcode;
-		}
 		for(int i = 0; i < 256; ++i) {
 			key_state[i] = false;
+			key_map[i] = 0;
+		}		
+		for(int i = 0; i < n; ++i) {
+			int key_code = XKeysymToKeycode(display, XK_SYMS[i].code);
+			int standard_code = XK_SYMS[i].standardcode;
+			key_info[i].name = XK_SYMS[i].name;
+			key_info[i].code = key_code;
+			key_info[i].standardcode = standard_code;
+			key_map[key_info[i].standardcode] = key_code;
 		}
 	}
     
@@ -280,6 +285,11 @@ public:
 		if(keycode > 255) return false;
 		return key_state[keycode];
 	}
+	
+	unsigned int key_code_from_standard_code(unsigned int standard_code) {
+		if(standard_code > 255) return 0;
+		return key_map[standard_code];
+	}
 };
 
 OdxX11Window *odxX11Window = NULL;
@@ -290,8 +300,8 @@ void odx_window_pos(int *x, int *y, int *w, int *h) {
 
 void odx_window_create(
     bool fullscreen,
-    void (*position_listener)(int x, int y, int w, int h)) {
-        
+    void (*position_listener)(int x, int y, int w, int h)) 
+{      
     odxX11Window = new OdxX11Window(fullscreen, position_listener);   
 }
 
@@ -300,10 +310,18 @@ void odx_window_destroy() {
 }
 
 void odx_window_process_events() {
+	if(odxX11Window == NULL) return;
     odxX11Window->process_events();
 }
 
 bool odx_window_is_key_pressed(unsigned int keycode) {
+	if(odxX11Window == NULL) return false;
+	return odxX11Window->is_key_pressed(keycode);
+}
+
+bool odx_window_is_standard_key_pressed(unsigned int standard_code) {
+	if(odxX11Window == NULL) return false;
+	unsigned int keycode = odxX11Window->key_code_from_standard_code(standard_code);
 	return odxX11Window->is_key_pressed(keycode);
 }
 

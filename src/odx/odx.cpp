@@ -127,12 +127,12 @@ int main (int argc, char **argv)
 			throttle=0;
 		if ((strcasecmp(argv[i],"-clock") == 0) && (i<argc-1))
 			odx_clock=atoi(argv[i+1]);
-        	if (strcasecmp(argv[i],"-playback") == 0)
+        if (strcasecmp(argv[i],"-playback") == 0)
 		{
 			i++;
 			if (i < argc)  /* point to inp file name */
 				playbackname = argv[i];
-        	}
+        }
 	}
 
 	/* Initialization */

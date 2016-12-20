@@ -10,7 +10,9 @@
 
 #include "odx_frontend_list.h"
 
-#define BMP_SIZE ((SCREEN_WIDTH*SCREEN_HEIGHT*4)+(256*4)+54)
+#define ODX_SCREEN_WIDTH 320
+#define ODX_SCREEN_HEIGHT 240
+#define BMP_SIZE ((ODX_SCREEN_WIDTH*ODX_SCREEN_HEIGHT*4)+(256*4)+54)
 
 #define COMPATCORES 1
 
@@ -108,37 +110,44 @@ inline bool isJoyPressed_DOWN(const int ExKey) {
 	return ExKey & OD_DOWN;
 }
 
+// TODO should this jist be odx_joystick_press?
 unsigned int frontend_joystick_press ()
 {
 	unsigned int ExKey = odx_joystick_press();
-    if(ui_exit) odx_exit("");
+	if(ui_exit) {
+		odx_exit("");
+	}
 	return ExKey;
 }
 
-
-
 static void blit_bmp_8bpp(unsigned char *in) 
 {
-    void *k; unsigned int pitch; COL_LockTexture(colRenderer, &k, &pitch);
-	register unsigned int *dest=(unsigned int *)k;
+    void *k; unsigned int pitch; 
+    COL_LockTexture(colRenderer, &k, &pitch);
+    
+	unsigned int *t =(unsigned int *)k;
+	unsigned int *r = t + ((ODX_SCREEN_HEIGHT - 1) * pitch);
 	
-	SDL_RWops *rw = SDL_RWFromMem(in, BMP_SIZE);
-	SDL_Surface *temp = SDL_LoadBMP_RW(rw, 1);
-	register unsigned int *src= (unsigned int *)temp->pixels;
+	register unsigned char *src = in + 71;
 
-	for(int y = 0; y < SCREEN_HEIGHT; ++y) {
-		for(int x = 0; x < SCREEN_WIDTH; ++x) {
-			int s = *src++;
-			*dest++ = 
+	for(int y = 0; y < ODX_SCREEN_HEIGHT; ++y) {
+		register unsigned int *p = r;
+	
+		for(int x = 0; x < ODX_SCREEN_WIDTH; ++x) {
+			unsigned int r  = *src++;
+			unsigned int g  = *src++;
+			unsigned int b  = *src++;
+			*src++;
+			
+			*p++ = 
 			  0xff000000 | 
-			  ((s & 0xff000000) >> 8) | 
-			  ((s & 0xff0000) >> 8) |
-			  ((s & 0xff00) >> 8 ) ;
+			  (r  << 0) | 
+			  (g  << 8) |
+			  (b  << 16) ;
 		}
+		r -= pitch;
 	}
 	COL_UnlockTexture(colRenderer);
-	
-	SDL_FreeSurface(temp);
 }
 
 static void odx_intro_screen(void) {
@@ -199,13 +208,13 @@ static void game_list_init_nocache(void)
 		{
 			for (i=0;i<NUMGAMES;i++)
 			{
-				if (drivers[i].available==0)
+				if (odx_drivers[i].available==0)
 				{
-					sprintf(game,"%s.zip",drivers[i].name);
+					sprintf(game,"%s.zip",odx_drivers[i].name);
 					
 					if (strcmp(actual->d_name,game)==0)
 					{
-						drivers[i].available=1;
+						odx_drivers[i].available=1;
 						game_num_avail++;
 						break;
 					}
@@ -226,7 +235,7 @@ static void game_list_init_nocache(void)
 		{
 			for (i=0;i<NUMGAMES;i++)
 			{
-				fputc(drivers[i].available,f);
+				fputc(odx_drivers[i].available,f);
 			}
 			fclose(f);
 			/* sync(); */
@@ -245,8 +254,8 @@ static void game_list_init_cache(void)
 	{
 		for (i=0;i<NUMGAMES;i++)
 		{
-			drivers[i].available=fgetc(f);
-			if (drivers[i].available)
+			odx_drivers[i].available=fgetc(f);
+			if (odx_drivers[i].available)
 				game_num_avail++;
 		}
 		fclose(f);
@@ -300,9 +309,9 @@ static void game_list_view(int *pos) {
 
 	/* Show List */
 	for (i=0;i<NUMGAMES;i++) {
-		if (drivers[i].available==1) {
+		if (odx_drivers[i].available==1) {
 			if (aux_pos>=view_pos && aux_pos<=view_pos+21) { // ALEK 20
-				odx_gamelist_text_out( screen_x, screen_y, drivers[i].description);
+				odx_gamelist_text_out( screen_x, screen_y, odx_drivers[i].description);
 				if (aux_pos==*pos) {
 					odx_gamelist_text_out( screen_x-10, screen_y,">" );
 					odx_gamelist_text_out( screen_x-13, screen_y-1,"-" );
@@ -319,12 +328,12 @@ static void game_list_select (int index, char *game, char *emu) {
 	int aux_pos=0;
 	for (i=0;i<NUMGAMES;i++)
 	{
-		if (drivers[i].available==1)
+		if (odx_drivers[i].available==1)
 		{
 			if(aux_pos==index)
 			{
-				strcpy(game,drivers[i].name);
-				strcpy(emu,drivers[i].exe);
+				strcpy(game, odx_drivers[i].name);
+				strcpy(emu, odx_drivers[i].exe);
 				break;
 			}
 			aux_pos++;
@@ -337,9 +346,9 @@ static char *game_list_description (int index)
 	int i;
 	int aux_pos=0;
 	for (i=0;i<NUMGAMES;i++) {
-		if (drivers[i].available==1) {
+		if (odx_drivers[i].available==1) {
 			if(aux_pos==index) {
-				return(drivers[i].description);
+				return(odx_drivers[i].description);
 			}
 			aux_pos++;
 		   }
@@ -1099,7 +1108,15 @@ int main (int argc, char **argv)
 	
 	/* Open dingux Initialization */
 	odx_init(1000,16,44100,16,0,60, fullscreen);
+	
+	odx_set_video_mode(8,ODX_SCREEN_WIDTH,ODX_SCREEN_HEIGHT);
 
+	odx_video_color8(0,0,0,0);
+	odx_video_color8(255,255,255,255);
+	odx_video_setpalette();
+	
+	odx_clear_video();
+	
 	/* Show intro screen */
 	odx_intro_screen();
 

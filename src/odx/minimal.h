@@ -25,16 +25,6 @@
 #include "col.h"
 #include "driver.h"
 
-/*
-#define ODX_SCREEN_WIDTH 320
-#define ODX_SCREEN_HEIGHT 240
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 240
-*/
-#define ODX_SCREEN_WIDTH 640
-#define ODX_SCREEN_HEIGHT 480
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
 
 #define odx_video_color8(C,R,G,B)  (odx_palette_rgb[C] = ((((R)&0xFF)<<16)|(((G)&0xFF)<<8)|(((B)&0xFF)))|0xff000000)
 #define odx_video_color16(R,G,B,A) ((((R)&0xFF)<<16)|(((G)&0xFF)<<8)|(((B)&0xFF))|0xff000000)
@@ -67,7 +57,6 @@ extern int						odx_sound_stereo;
 
 extern int						rotate_controls;
 
-extern SDL_Joystick				*odx_joyanalog[];
 extern signed int axis_x[],axis_y[];
 
 extern void odx_video_flip(void);
@@ -81,7 +70,6 @@ extern bool odx_is_joy_axis_pressed (int index, int axis, int dir);
 extern void odx_poll_joysticks();
 
 
-extern unsigned int odx_keyboard_read();
 extern unsigned int odx_joystick_press();
 
 
@@ -97,10 +85,12 @@ extern void odx_sound_thread_stop(void);
 extern void odx_sound_init(int rate, int bits, int stereo);
 
 extern void odx_window_create(bool fullscreen, void (*position_listener)(int x, int y, int w, int h));
+extern void odx_window_destroy();
 extern void odx_window_pos(int *x, int *y, int *w, int *h);
 extern void odx_window_process_events();
-extern bool odx_window_is_key_pressed(unsigned int keycode);
 extern KeyboardInfo* odx_window_get_keyboard_info();
+extern bool odx_window_is_key_pressed(unsigned int keycode);
+extern bool odx_window_is_standard_key_pressed(unsigned int standard_code);
 
 extern void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int Hz, bool fullscreen);
 extern void odx_deinit(void);

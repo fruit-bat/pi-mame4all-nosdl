@@ -35,7 +35,6 @@ unsigned int			odx_palette_rgb[256];
 int						odx_clock=366;
 
 int						rotate_controls=0;
-unsigned char			odx_keys[OD_KEY_MAX];
 
 bool ui_exit = false;
 
@@ -99,10 +98,6 @@ void odx_get_render_dest(
   
 }
 
-void odx_clear_background() {
-	// TODO remove
-}
-
 void odx_updateWindowPosition() {
   int dx,dy;
   unsigned int dw,dh;
@@ -112,43 +107,39 @@ void odx_updateWindowPosition() {
   COL_updateWindowPosition(colRenderer, dx, dy, dw, dh);
 }
 
-unsigned int odx_keyboard_read()
-{
-	odx_window_process_events();
-	
-	unsigned int res = 0;
-/* TODO
-	keystates = SDL_GetKeyboardState(NULL);
-
-// TODO
-	if (keystates[SDL_SCANCODE_Q] == SDL_PRESSED) {
-        ui_exit = true;
-	}
-
-// TODO
-	// Keys for file chooser only...
-	if(keystates[SDL_SCANCODE_LEFT] == SDL_PRESSED) res |= OD_LEFT;
-	if(keystates[SDL_SCANCODE_RIGHT] == SDL_PRESSED)res |= OD_RIGHT;
-	if(keystates[SDL_SCANCODE_UP] == SDL_PRESSED) res |= OD_UP;
-	if(keystates[SDL_SCANCODE_DOWN] == SDL_PRESSED) res |= OD_DOWN;
-	if(keystates[SDL_SCANCODE_RETURN] == SDL_PRESSED) res |= OD_A;
-	if(keystates[SDL_SCANCODE_ESCAPE] == SDL_PRESSED) res |= OD_B;
-	if(keystates[SDL_SCANCODE_SPACE] == SDL_PRESSED) res |= OD_START;
-	*/
-	return res;
-}
-
 bool odx_key_pressed(int keycode) {
 	return odx_window_is_key_pressed(keycode);
 }
 
+// Just for controlling the front end
 unsigned int odx_joystick_press ()
 {
-	unsigned int ExKey=0;
-	for(int i = 0; i< 20 && !ui_exit; ++i) if  ((odx_joystick_read(0) | odx_keyboard_read()) != 0 ) { usleep (10000); }
-	while (!ui_exit && ((ExKey=(odx_joystick_read(0) | odx_keyboard_read())) == 0 )) { usleep (10000); }
-//	printf("keystat %#010x \n", ExKey);  
-	return ExKey;
+	static int lastkey = 0;
+	
+	while (true) { 
+		odx_window_process_events();
+
+		if (odx_window_is_standard_key_pressed(KEYCODE_Q)) {
+			ui_exit = true;
+			return 0;
+		}
+
+		unsigned int ExKey = 0;
+		if(odx_window_is_standard_key_pressed(KEYCODE_LEFT))  ExKey |= OD_LEFT;
+		if(odx_window_is_standard_key_pressed(KEYCODE_RIGHT)) ExKey |= OD_RIGHT;
+		if(odx_window_is_standard_key_pressed(KEYCODE_UP))    ExKey |= OD_UP;
+		if(odx_window_is_standard_key_pressed(KEYCODE_DOWN))  ExKey |= OD_DOWN;
+		if(odx_window_is_standard_key_pressed(KEYCODE_ENTER)) ExKey |= OD_A;
+		if(odx_window_is_standard_key_pressed(KEYCODE_ESC))   ExKey |= OD_B;
+		if(odx_window_is_standard_key_pressed(KEYCODE_SPACE)) ExKey |= OD_START;	
+				
+		if(ExKey != lastkey) {
+			lastkey = ExKey;
+			if(ExKey != 0) return ExKey;
+		}
+		
+		usleep (10000);
+	}
 }
 
 unsigned long odx_timer_read(void)
@@ -168,36 +159,22 @@ void odx_window_position_listener(int x, int y, int w, int h) {
 
 void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int Hz, bool fullscreen)
 {
-  printf("odx-init\n");
+	printf("odx-init\n");
 
-	/* All keys unpressed. */
-	for(int i = 0 ; i < OD_KEY_MAX ; i++ ) {
-		odx_keys[i] = 0;
+	// Initialize SDL.
+	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+		  exit(1);
 	}
-  // Initialize SDL.
-  if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-          exit(1);
-  }
-  
-  odx_window_create(fullscreen, odx_window_position_listener); 
 
-  odx_clear_background();
-  
-  colRenderer = COL_CreateRenderer(); 
-  
-  printf("Created col renderer %ld\n", colRenderer);
-  
+	odx_window_create(fullscreen, odx_window_position_listener); 
+
+	colRenderer = COL_CreateRenderer(); 
+
+	printf("Created col renderer %ld\n", colRenderer);
+
 	/* General video & audio stuff */
 
 	odx_sound_init(rate, bits, stereo);
-
-	odx_set_video_mode(bpp,ODX_SCREEN_WIDTH,ODX_SCREEN_HEIGHT);
-
-	odx_video_color8(0,0,0,0);
-	odx_video_color8(255,255,255,255);
-	odx_video_setpalette();
-	
-	odx_clear_video();
 }
 
 void odx_deinit(void)
@@ -207,6 +184,7 @@ printf("odx_deinit(void).\n");
 	odx_sound_thread_stop();
 	COL_DestroyRenderer(colRenderer);
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	odx_window_destroy();
 }
 
 void odx_set_clock(int mhz)

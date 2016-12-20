@@ -5,6 +5,9 @@
 
 #include "minimal.h"
 
+#define VEC_SCREEN_WIDTH 640
+#define VEC_SCREEN_HEIGHT 480
+
 dirtygrid grid1;
 dirtygrid grid2;
 char *dirty_old=grid1;
@@ -261,8 +264,8 @@ static void select_display_mode(int width,int height,int depth,int attributes,in
 
 	if (!gfx_width && !gfx_height)
 	{
-		gfx_width = ODX_SCREEN_WIDTH;
-		gfx_height = ODX_SCREEN_HEIGHT;
+		gfx_width = VEC_SCREEN_WIDTH;
+		gfx_height = VEC_SCREEN_HEIGHT;
 	}
   else 
   {
@@ -273,8 +276,8 @@ static void select_display_mode(int width,int height,int depth,int attributes,in
 	// vector games always use maximum resolution 
 	if (vector_game)
 	{
-		gfx_width = ODX_SCREEN_WIDTH;
-		gfx_height = ODX_SCREEN_HEIGHT;
+		gfx_width = VEC_SCREEN_WIDTH;
+		gfx_height = VEC_SCREEN_HEIGHT;
 	}
 }
 
