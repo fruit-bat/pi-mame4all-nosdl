@@ -292,7 +292,7 @@ public:
 	}
 };
 
-OdxX11Window *odxX11Window = NULL;
+static OdxX11Window *odxX11Window = NULL;
 
 void odx_window_pos(int *x, int *y, int *w, int *h) {
     odxX11Window->get_window_geometry(x, y, w, h);
@@ -302,11 +302,13 @@ void odx_window_create(
     bool fullscreen,
     void (*position_listener)(int x, int y, int w, int h)) 
 {      
-    odxX11Window = new OdxX11Window(fullscreen, position_listener);   
+	if(odxX11Window != NULL) return;
+   odxX11Window = new OdxX11Window(fullscreen, position_listener);   
 }
 
 void odx_window_destroy() {
     if(odxX11Window != NULL) delete odxX11Window;   
+    odxX11Window = NULL;
 }
 
 void odx_window_process_events() {
