@@ -6,40 +6,62 @@
 
 extern int master_volume;
 
-snd_pcm_t *playback_handle = NULL;
+static snd_pcm_t*           playback_handle = NULL;
+static snd_pcm_uframes_t    sound_buffer_size_in_frames;
+static unsigned int			odx_vol = 100;
 
-snd_pcm_uframes_t       sound_buffer_size_in_frames;
-unsigned int			odx_vol = 100;
 unsigned int			odx_sound_rate=44100;
 unsigned int			odx_sound_bits=8;
 int						odx_sound_stereo=1;
 
+// volume 0-100
+void odx_set_alsa_volume(long volume)
+{
+    long min, max;
+    snd_mixer_t *handle;
+    snd_mixer_selem_id_t *sid;
+    const char *card = "default";
+    const char *selem_name = "PCM";
+
+    snd_mixer_open(&handle, 0);
+    snd_mixer_attach(handle, card);
+    snd_mixer_selem_register(handle, NULL, NULL);
+    snd_mixer_load(handle);
+
+    snd_mixer_selem_id_alloca(&sid);
+    snd_mixer_selem_id_set_index(sid, 0);
+    snd_mixer_selem_id_set_name(sid, selem_name);
+    snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
+    if(elem) {
+		snd_mixer_selem_get_playback_dB_range(elem, &min, &max);
+	    min = -2000; // TODO Negative value return is way to large, so override for now
+		long range = max - min;
+		long scaled = (volume * range) / 100;
+		long offset = min + scaled;
+	  
+		snd_mixer_selem_set_playback_dB_all(elem, offset, 1);
+	}
+    snd_mixer_close(handle);
+}
+
 void odx_sound_volume(int vol)
 {
-	
-printf("odx_sound_volume(%d)\n", vol);
  	if( vol < 0 ) vol = 0;
  	if( vol > 100 ) vol = 100;
+ 	odx_set_alsa_volume(vol);
 
  	if( vol > 0 ) {
  		master_volume = vol;
  		if( odx_vol == 0 ) {
-printf("Audio started.\n");
 			odx_sound_thread_start();
-// 			SDL_PauseAudio(0);
-// 			if( odx_audio_spec.userdata )
-//	 			memset( odx_audio_spec.userdata, 0 , odx_audio_buffer_len );
-// 			odx_sndlen = 0;
  		}
+ 		
  	}
  	else {
-printf("Audio stopped.\n");
 		odx_sound_thread_stop();
-		//SDL_PauseAudio(1);
  	}
  	
- 	odx_vol = vol;
- 	
+ 	odx_vol = vol;	
 }
 
 void odx_sound_play(
