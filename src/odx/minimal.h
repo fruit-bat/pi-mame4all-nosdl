@@ -20,8 +20,6 @@
 #include <unistd.h>
 #include <stdarg.h>
 
-#include <SDL2/SDL.h>
-
 #include "col.h"
 #include "driver.h"
 
@@ -44,7 +42,6 @@ enum  { OD_UP=1<<0,         OD_LEFT=1<<1,       OD_DOWN=1<<2,  OD_RIGHT=1<<3,
 
 #define OD_KEY_MAX 32
 
-extern SDL_Texture 				*sdlTexture;
 extern COL_Renderer *colRenderer;
 
 extern volatile unsigned int	odx_palette[512];
@@ -79,7 +76,7 @@ extern unsigned int odx_video_regulator;
 
 extern void odx_sound_volume(int vol);
 extern void odx_sound_play(void *buff, int len);
-extern void odx_sound_thread_start(void);
+extern bool odx_sound_thread_start(void);
 extern void odx_sound_thread_stop(void);
 extern void odx_sound_init(int rate, int bits, int stereo);
 

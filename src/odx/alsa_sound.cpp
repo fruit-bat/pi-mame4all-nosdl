@@ -1,23 +1,22 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
-#include <SDL2/SDL.h>
-
+#include <alsa/asoundlib.h>
 #include "minimal.h"
 
 extern int master_volume;
 
+snd_pcm_t *playback_handle = NULL;
 
-unsigned int			odx_audio_buffer_len=0;
-unsigned int			odx_sndlen=0;
+snd_pcm_uframes_t       sound_buffer_size_in_frames;
 unsigned int			odx_vol = 100;
 unsigned int			odx_sound_rate=44100;
+unsigned int			odx_sound_bits=8;
 int						odx_sound_stereo=1;
-SDL_AudioSpec 			odx_audio_spec;
-pthread_mutex_t 		sndlock;
 
 void odx_sound_volume(int vol)
 {
+	/*
 printf("odx_sound_volume(void)\n");
  	if( vol < 0 ) vol = 0;
  	if( vol > 100 ) vol = 100;
@@ -38,141 +37,159 @@ printf("Audio stopped.\n");
  	}
  	
  	odx_vol = vol;
+ 	*/
 }
-
-static SDL_AudioSpec actual_audio_spec;
 
 void odx_sound_play(
   void *buff, // The buffer
-  int len     // Length of the buffer in bytes
+  int number_of_bytes     // Length of the buffer in bytes
 )
 {
-	pthread_mutex_lock(&sndlock);
-	int i = 0;
-	const bool monoToStereo = odx_audio_spec.channels == 1 && actual_audio_spec.channels == 2;
-	const int actualLen = monoToStereo ? len<<1 : len;
-	while( odx_sndlen+actualLen > odx_audio_buffer_len ) {
-        if(i == 5 && odx_video_regulator > 900) odx_video_regulator -= 5;
-//printf("AUDIO Overrun %d %d\n", i, odx_video_regulator);        
-		if(i++ > 100) {
-			// Overrun 
-		  odx_sndlen = 0;
-		  pthread_mutex_unlock(&sndlock);
-		  return;
-		}
-		pthread_mutex_unlock(&sndlock);
-		usleep(2000);
-		pthread_mutex_lock(&sndlock);
-	}
-
-	if( odx_audio_spec.userdata ) {
-		if(monoToStereo) {
-			short* p = (short*)((char*)odx_audio_spec.userdata + odx_sndlen);
-			short* q = (short*)buff;
-			for(int k=0; k < len>>1; ++k) {
-				const short s = q[k];
-				*p++ = s;
-				*p++ = s;
-			}
-		}
-		else {
-			memcpy( (char*)odx_audio_spec.userdata + odx_sndlen, buff, len );
-		}
-		odx_sndlen += actualLen;
-	}
-
-	pthread_mutex_unlock(&sndlock);
-}
-
-static void odx_sound_callback(void *data, Uint8 *stream, int len)
-{
-	pthread_mutex_lock(&sndlock);
+	int frames_free_in_alsa = snd_pcm_avail_update(playback_handle);
+	int frames_to_write = number_of_bytes >> (odx_sound_stereo ? 2 : 1);
+//printf("ALSA Wants %d and we have %d\n", frames_free_in_alsa, frames_to_write);	
+	int err;
+	if (err = snd_pcm_writei(playback_handle, buff, frames_to_write) == -EPIPE) {
+		printf("XRUN.\n");
+		snd_pcm_prepare(playback_handle);
+	} else if (err < 0) {
+		printf("ERROR. Can't write to PCM device. %s\n", snd_strerror(err));
+	}	
 	
-	if( odx_sndlen < len ) {
-        if(odx_video_regulator < 2000) odx_video_regulator += 20;
-//printf("AUDIO Underrun %d\n", odx_video_regulator);        
-		memcpy( stream, data, odx_sndlen );
-		memset( stream+odx_sndlen, 0, len-odx_sndlen);
-		odx_sndlen = 0;
-		pthread_mutex_unlock(&sndlock);
-		return;
-	}
-	memcpy( stream, data, len );
-	odx_sndlen -= len;
-	memcpy( data, (Uint8*)data + len, odx_sndlen );
-
-	pthread_mutex_unlock(&sndlock);
+	if(frames_free_in_alsa >= 0) {
+		const unsigned int target_frames = sound_buffer_size_in_frames - 4096;
+		const int diff = frames_free_in_alsa - target_frames;
+		const int f = diff / 10;
+		int r = 1000 + f;
+		if(r < 1) r = 1;
+		odx_video_regulator = r;
+		//printf("diff=%d, f=%d, reg=%d\n", diff, f, odx_video_regulator);
+	}	
 }
 
 void odx_sound_init(int rate, int bits, int stereo) {
-
-    odx_audio_spec.freq = rate;
-	if( bits == 16 )
-    	odx_audio_spec.format = AUDIO_S16SYS;
-    else
-    	odx_audio_spec.format = AUDIO_S8;
-    odx_audio_spec.channels = stereo ? 2: 1;
-    odx_audio_spec.samples = 1024;
-    odx_audio_spec.callback = odx_sound_callback;
-    odx_audio_spec.userdata = NULL;
 }
 
-void odx_sound_thread_start(void)
-{  
-	odx_sndlen=0;
-printf("Starting audio...\n");
-    odx_audio_spec.freq = odx_sound_rate;
-    odx_audio_spec.channels = odx_sound_stereo ? 2: 1;
+bool odx_sound_thread_start(void)
+{  	
+	printf("ALSA Audio start thread\n");
+	const char *pcm_device = "default";
+	
+	snd_pcm_hw_params_t *hw_params;
+	snd_pcm_sw_params_t *sw_params;
+	snd_pcm_sframes_t frames_to_deliver;
+	int nfds;
+	int err;
+	struct pollfd *pfds;
 
-	odx_audio_buffer_len = 16384; // odx_audio_spec.samples * odx_audio_spec.channels * 2 * 64;
-	void *audiobuf = malloc( odx_audio_buffer_len );
-	memset( audiobuf, 0 , odx_audio_buffer_len );
-	odx_audio_spec.userdata=audiobuf;
-
-
-  
-  printf("Requested audio format %d, freq %d, channels %d, samples %d\n",
-    odx_audio_spec.format,
-    odx_audio_spec.freq,
-    odx_audio_spec.channels,
-    odx_audio_spec.samples);
-    
-	if ( SDL_OpenAudio(&odx_audio_spec, &actual_audio_spec) < 0 ) {
-		fprintf(stderr, "Unable to open audio: %s\n", SDL_GetError());
-		exit(1);
+	if ((err = snd_pcm_open (&playback_handle, pcm_device, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
+		fprintf (stderr, "cannot open audio device %s (%s)\n", 
+			 pcm_device,
+			 snd_strerror (err));
+		return false;
 	}
-  
-  printf("Audio format %d, freq %d, channels %d, samples %d\n",
-    actual_audio_spec.format,
-    actual_audio_spec.freq,
-    actual_audio_spec.channels,
-    actual_audio_spec.samples);
-  
-  
-  	if (pthread_mutex_init(&sndlock, NULL) != 0)
-    {
-		fprintf(stderr, "Unable to create audio mutex lock\n");
-		SDL_CloseAudio();
-        exit(1);
-    }
+	   
+	if ((err = snd_pcm_hw_params_malloc (&hw_params)) < 0) {
+		fprintf (stderr, "cannot allocate hardware parameter structure (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+			 
+	if ((err = snd_pcm_hw_params_any (playback_handle, hw_params)) < 0) {
+		fprintf (stderr, "cannot initialize hardware parameter structure (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
 
-	SDL_PauseAudio(0);
+	if ((err = snd_pcm_hw_params_set_access (playback_handle, hw_params, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
+		fprintf (stderr, "cannot set access type (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
 
-  printf("Audio started.\n");
+	if ((err = snd_pcm_hw_params_set_format (playback_handle, hw_params, SND_PCM_FORMAT_S16_LE)) < 0) {
+		fprintf (stderr, "cannot set sample format (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+
+	int actual_rate = odx_sound_rate;
+	if ((err = snd_pcm_hw_params_set_rate_near (playback_handle, hw_params, &actual_rate, 0)) < 0) {
+		fprintf (stderr, "cannot set sample rate (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+
+	if ((err = snd_pcm_hw_params_set_channels (playback_handle, hw_params, odx_sound_stereo ? 2: 1)) < 0) {
+		fprintf (stderr, "cannot set channel count (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+
+	if ((err = snd_pcm_hw_params (playback_handle, hw_params)) < 0) {
+		fprintf (stderr, "cannot set parameters (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+
+	if ((err = snd_pcm_hw_params_get_buffer_size (hw_params, &sound_buffer_size_in_frames)) < 0) {
+		fprintf (stderr, "cannot get buffer size (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+	printf("ALSA Buffer size %d\n", sound_buffer_size_in_frames);
+
+	snd_pcm_hw_params_free (hw_params);
+
+	/* tell ALSA to wake us up whenever 4096 or more frames
+	   of playback data can be delivered. Also, tell
+	   ALSA that we'll start the device ourselves.
+	*/
+
+	if ((err = snd_pcm_sw_params_malloc (&sw_params)) < 0) {
+		fprintf (stderr, "cannot allocate software parameters structure (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+	if ((err = snd_pcm_sw_params_current (playback_handle, sw_params)) < 0) {
+		fprintf (stderr, "cannot initialize software parameters structure (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+	if ((err = snd_pcm_sw_params_set_avail_min (playback_handle, sw_params, 512)) < 0) {
+		fprintf (stderr, "cannot set minimum available count (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+	if ((err = snd_pcm_sw_params_set_start_threshold (playback_handle, sw_params, 0U)) < 0) {
+		fprintf (stderr, "cannot set start mode (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+	if ((err = snd_pcm_sw_params (playback_handle, sw_params)) < 0) {
+		fprintf (stderr, "cannot set software parameters (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+
+	/* the interface will interrupt the kernel every 4096 frames, and ALSA
+	   will wake up this program very soon after that.
+	*/
+
+	if ((err = snd_pcm_prepare (playback_handle)) < 0) {
+		fprintf (stderr, "cannot prepare audio interface for use (%s)\n",
+			 snd_strerror (err));
+		return false;
+	}
+	
+	printf("ALSA Audio init OK\n"); 
 }
 
 void odx_sound_thread_stop(void)
 {
-	if( odx_audio_spec.userdata ) {
-printf("odx_sound_thread_stop(void)\n");
-		SDL_PauseAudio(1);
-printf("Audio stopped.\n");
-		pthread_mutex_destroy(&sndlock);
-		SDL_CloseAudio();
-		SDL_QuitSubSystem(SDL_INIT_AUDIO);
-
-		free( odx_audio_spec.userdata );
-		odx_audio_spec.userdata = NULL;
+	if(playback_handle != NULL) {
+		snd_pcm_close (playback_handle);
+		playback_handle = NULL;
 	}
 }
 

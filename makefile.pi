@@ -23,10 +23,7 @@ MD = @mkdir
 RM = @rm -f
 CP = @cp
 
-SDLHOME=/media/pi/PiSpace/src/cubie/ct-sdl2
-# SDLHOME=/media/pi/PiSpace/src/SDL2.0
-
-DEVLIBS = -L$(SDLHOME)/build/.libs -L/usr/lib/arm-linux-gnueabihf
+DEVLIBS = -L/usr/lib/arm-linux-gnueabihf
 
 EMULATOR = $(TARGET)$(EXE)
 
@@ -37,7 +34,6 @@ DEFS =  -DLSB_FIRST -DALIGN_INTS -DALIGN_SHORTS -DINLINE="static __inline" -Dasm
 
 CFLAGS = -fsigned-char $(DEVLIBS) \
 	-mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard \
-	-I$(SDLHOME)/include \
 	-Isrc -Isrc/$(MAMEOS) -Isrc/zlib \
 	-I/opt/vc/include \
 	-I/opt/vc/include/interface/vcos/pthreads \
@@ -51,8 +47,7 @@ CFLAGS = -fsigned-char $(DEVLIBS) \
 
 LDFLAGS = $(CFLAGS) -s 
 
-LIBS = -lSDL2 -lm -lpthread -lX11 -lasound -L/opt/vc/lib -lbcm_host -L/usr/X11R6/lib
-# -lSDL2
+LIBS = -lm -lpthread -lX11 -lasound -L/opt/vc/lib -lbcm_host -L/usr/X11R6/lib
 
 OBJ = obj_$(TARGET)_$(MAMEOS)
 

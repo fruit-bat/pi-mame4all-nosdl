@@ -20,9 +20,6 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <string.h>
-
-#include <SDL2/SDL.h>
-
 #include "minimal.h"
 
 COL_Renderer *colRenderer;
@@ -170,11 +167,6 @@ void odx_init(int ticks_per_second, int bpp, int rate, int bits, int stereo, int
 {
 	printf("odx-init\n");
 
-	// Initialize SDL.
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		  exit(1);
-	}
-
 	odx_window_create(fullscreen, odx_window_position_listener); 
 
 	colRenderer = COL_CreateRenderer(); 
@@ -193,7 +185,6 @@ printf("odx_deinit(void).\n");
 	odx_sound_thread_stop();
 	// Need to work out if this has been initialised! Seg fault
 	COL_DestroyRenderer(colRenderer);
-	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 	odx_window_destroy();
 }
 

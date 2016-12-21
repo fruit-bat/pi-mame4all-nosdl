@@ -9,7 +9,7 @@ typedef struct COL_Texture {
   unsigned int current_buffer;
   unsigned int w;
   unsigned int h;
-  uint8_t* buffers[COL_TEXTURE_BUFFER_COUNT];
+  unsigned char* buffers[COL_TEXTURE_BUFFER_COUNT];
   
 } COL_Texture;
 
