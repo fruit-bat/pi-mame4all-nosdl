@@ -16,8 +16,8 @@ int						odx_sound_stereo=1;
 
 void odx_sound_volume(int vol)
 {
-	/*
-printf("odx_sound_volume(void)\n");
+	
+printf("odx_sound_volume(%d)\n", vol);
  	if( vol < 0 ) vol = 0;
  	if( vol > 100 ) vol = 100;
 
@@ -25,19 +25,21 @@ printf("odx_sound_volume(void)\n");
  		master_volume = vol;
  		if( odx_vol == 0 ) {
 printf("Audio started.\n");
- 			SDL_PauseAudio(0);
- 			if( odx_audio_spec.userdata )
-	 			memset( odx_audio_spec.userdata, 0 , odx_audio_buffer_len );
- 			odx_sndlen = 0;
+			odx_sound_thread_start();
+// 			SDL_PauseAudio(0);
+// 			if( odx_audio_spec.userdata )
+//	 			memset( odx_audio_spec.userdata, 0 , odx_audio_buffer_len );
+// 			odx_sndlen = 0;
  		}
  	}
  	else {
 printf("Audio stopped.\n");
-		SDL_PauseAudio(1);
+		odx_sound_thread_stop();
+		//SDL_PauseAudio(1);
  	}
  	
  	odx_vol = vol;
- 	*/
+ 	
 }
 
 void odx_sound_play(
@@ -45,6 +47,8 @@ void odx_sound_play(
   int number_of_bytes     // Length of the buffer in bytes
 )
 {
+	if(playback_handle == NULL) return;
+	
 	int frames_free_in_alsa = snd_pcm_avail_update(playback_handle);
 	int frames_to_write = number_of_bytes >> (odx_sound_stereo ? 2 : 1);
 //printf("ALSA Wants %d and we have %d\n", frames_free_in_alsa, frames_to_write);	
@@ -72,6 +76,8 @@ void odx_sound_init(int rate, int bits, int stereo) {
 
 bool odx_sound_thread_start(void)
 {  	
+	if(playback_handle != NULL) return true;
+	
 	printf("ALSA Audio start thread\n");
 	const char *pcm_device = "default";
 	
@@ -187,9 +193,9 @@ bool odx_sound_thread_start(void)
 
 void odx_sound_thread_stop(void)
 {
-	if(playback_handle != NULL) {
-		snd_pcm_close (playback_handle);
-		playback_handle = NULL;
-	}
+	if(playback_handle == NULL) return;
+	
+	snd_pcm_close (playback_handle);
+	playback_handle = NULL;
 }
 
