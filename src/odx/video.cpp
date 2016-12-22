@@ -858,43 +858,16 @@ void osd_update_video_and_audio(struct osd_bitmap *bitmap)
 		}
 
 		/* now wait until it's time to update the screen */
-		//if (throttle)
-		//{
+		if (throttle)
+		{
 			profiler_mark(PROFILER_IDLE);
-            
-   /*         
-			{
-				static TICKER last;
-				do
-				{
-                 //   vsync();
-					curr = ticker();
-                    usleep(2000);
-				} while (TICKS_PER_SEC / (curr - last) > video_fps * odx_video_regulator /1000);
-				last = curr;
-			}
-     */       
             {
 				static TICKER last = ticker();
                 curr = ticker();
-//                long delay = ((TICKS_PER_SEC*1000) / (video_fps * odx_video_regulator)) - (curr - last);
-                //if(delay > 0) usleep(delay);
+                long delay = ((TICKS_PER_SEC * 10) / (video_fps * 12)) - (curr - last);
+                if(delay > 0) usleep(delay);
 				last = ticker();
 			}  
-            /*
-				TICKER target;
-
-				curr = ticker();
-				target = this_frame_base + frameskip_counter * TICKS_PER_SEC/video_fps;
-				if ((curr < target) && (target-curr<TICKS_PER_SEC))
-				{
-					do
-					{
-                        usleep(2000);
-						curr = ticker();
-					} while ((curr < target) && (target-curr<TICKS_PER_SEC));
-				}
-      */
       /*
 			if (video_sync)
 			{
@@ -925,8 +898,8 @@ void osd_update_video_and_audio(struct osd_bitmap *bitmap)
       */
       
 		  profiler_mark(PROFILER_END);
-		//}
-		//else curr = ticker();
+		}
+		else curr = ticker();
 
 		if (frameskip_counter == 0)
 		{
