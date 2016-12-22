@@ -70,26 +70,47 @@ void odx_sound_play(
 )
 {
 	if(playback_handle == NULL) return;
-	
-	int frames_free_in_alsa = snd_pcm_avail_update(playback_handle);
+	const unsigned int target_frames = sound_buffer_size_in_frames - 8192;
+
 	int frames_to_write = number_of_bytes >> (odx_sound_stereo ? 2 : 1);
+	short *p = (short *)buff;
+	int frames_free_in_alsa;
+	while(true) {
+		frames_free_in_alsa = snd_pcm_avail_update(playback_handle);
+		if(frames_free_in_alsa > target_frames) {
+			frames_free_in_alsa -= target_frames;
+		}
+		else if(frames_free_in_alsa > 0) {
+			frames_free_in_alsa = 0;
+		}
+		if(frames_free_in_alsa > 4096) {
+			odx_video_regulator += 2;
+		}
 //printf("ALSA Wants %d and we have %d\n", frames_free_in_alsa, frames_to_write);	
-	int err;
-	if (err = snd_pcm_writei(playback_handle, buff, frames_to_write) == -EPIPE) {
-		printf("XRUN.\n");
-		snd_pcm_prepare(playback_handle);
-	} else if (err < 0) {
-		printf("ERROR. Can't write to PCM device. %s\n", snd_strerror(err));
-	}	
-	
-	if(frames_free_in_alsa >= 0) {
-		const unsigned int target_frames = sound_buffer_size_in_frames - 4096;
-		const int diff = frames_free_in_alsa - target_frames;
-		const int f = diff / 10;
-		int r = 1000 + f;
-		if(r < 1) r = 1;
-		odx_video_regulator = r;
-		//printf("diff=%d, f=%d, reg=%d\n", diff, f, odx_video_regulator);
+		int err;
+		int f;
+		if((frames_free_in_alsa < 0) || (frames_free_in_alsa >= frames_to_write)){
+			f = frames_to_write;
+		}
+		else {
+			f = frames_free_in_alsa;
+		}
+		
+		if (err = snd_pcm_writei(playback_handle, p, f) == -EPIPE) {
+			printf("XRUN.\n");
+			snd_pcm_prepare(playback_handle);
+		} else if (err < 0) {
+			printf("ERROR. Can't write to PCM device. %s\n", snd_strerror(err));
+		}
+		
+		frames_to_write -= f;
+		
+		if(frames_to_write == 0) break;
+		
+		usleep(5000);
+		
+		p += f;
+		if(odx_sound_stereo) p += f;
 	}	
 }
 
@@ -165,7 +186,7 @@ bool odx_sound_thread_start(void)
 			 snd_strerror (err));
 		return false;
 	}
-	printf("ALSA Buffer size %d\n", sound_buffer_size_in_frames);
+	printf("ALSA Buffer size %d stero %d\n", sound_buffer_size_in_frames, odx_sound_stereo);
 
 	snd_pcm_hw_params_free (hw_params);
 

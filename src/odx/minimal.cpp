@@ -38,7 +38,7 @@ bool ui_exit = false;
 signed int axis_x[]={0, 0}, axis_y[]={0,0};
 
 // This is used to regulate video rate in video.cpp
-unsigned int            odx_video_regulator = 1100;
+unsigned int            odx_video_regulator = 0;
 
 
 void odx_video_flip(void)

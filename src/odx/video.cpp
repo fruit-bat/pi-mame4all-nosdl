@@ -769,6 +769,10 @@ INLINE void pan_display(void)
 
 int osd_skip_this_frame(void)
 {
+	if(odx_video_regulator > 0) {
+		odx_video_regulator--;
+		return 1;
+	}
 	static const int skiptable[FRAMESKIP_LEVELS][FRAMESKIP_LEVELS] =
 	{
 		{ 0,0,0,0,0,0,0,0,0,0,0,0 },
@@ -873,8 +877,8 @@ void osd_update_video_and_audio(struct osd_bitmap *bitmap)
             {
 				static TICKER last = ticker();
                 curr = ticker();
-                long delay = ((TICKS_PER_SEC*1000) / (video_fps * odx_video_regulator)) - (curr - last);
-                if(delay > 0) usleep(delay);
+//                long delay = ((TICKS_PER_SEC*1000) / (video_fps * odx_video_regulator)) - (curr - last);
+                //if(delay > 0) usleep(delay);
 				last = ticker();
 			}  
             /*
