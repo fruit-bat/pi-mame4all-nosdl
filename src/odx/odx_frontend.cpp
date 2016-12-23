@@ -141,8 +141,7 @@ printf("odx_intro_screen(void)\n");
 	char name[256];
 	FILE *f;
 	odx_video_flip();
-	sprintf(name,"skins/splash.bmp");
-	
+	sprintf(name,"%s/skins/splash.bmp", mamedir);
 	f=fopen(name,"rb");
 	if (f) {
 		fread(splash_bmp,1,BMP_SIZE,f);
@@ -154,7 +153,7 @@ printf("odx_intro_screen(void)\n");
 	odx_video_flip();
 	frontend_joystick_press();
 	
-	sprintf(name,"skins/menu.bmp");
+	sprintf(name,"%s/skins/menu.bmp", mamedir);
 	f=fopen(name,"rb");
 	if (f) {
 		fread(menu_bmp,1,BMP_SIZE,f);
