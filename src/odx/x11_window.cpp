@@ -233,6 +233,11 @@ public:
           display,
           window, 
           ExposureMask | KeyPressMask | KeyReleaseMask | StructureNotifyMask);
+          
+        XStoreName(
+          display, 
+          window,
+          "Mame4All");
          
         XMapWindow(
           display, 
