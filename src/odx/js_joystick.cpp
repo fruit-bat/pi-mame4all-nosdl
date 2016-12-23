@@ -123,11 +123,13 @@ public:
         
 };
 
-#define NUM_JOYSTICKS 2
+#define NUM_JOYSTICKS 4
 
-JsJoystick js_joysticks[] = {
+JsJoystick js_joysticks[NUM_JOYSTICKS] = {
     JsJoystick("/dev/input/js0"),
-    JsJoystick("/dev/input/js1")
+    JsJoystick("/dev/input/js1"),
+    JsJoystick("/dev/input/js2"),
+    JsJoystick("/dev/input/js3")
 };
 
 void odx_poll_joysticks() {
