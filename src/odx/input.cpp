@@ -302,18 +302,10 @@ void osd_joystick_end_calibration (void)
 {
 }
 
-void osd_trak_read(int player,int *deltax,int *deltay)
+void osd_trak_read(int player, int *deltax, int *deltay)
 {
-	if (player != 0 || use_mouse == 0)
-		*deltax = *deltay = 0;
-	else
-	{
-		*deltax = *deltay = 0;
-		if(JOY_LEFT_PRESSED) *deltax=-5;
-	  	if(JOY_RIGHT_PRESSED) *deltax=5;
-	  	if(JOY_UP_PRESSED) *deltay=5; 
-	 	if(JOY_DOWN_PRESSED) *deltay=-5;
-	}
+	*deltax = odx_joy_axis_value(player, 0, 5);
+	*deltay = odx_joy_axis_value(player, 1, 5);
 }
 
 #ifndef MESS

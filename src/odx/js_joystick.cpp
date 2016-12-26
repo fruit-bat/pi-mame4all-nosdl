@@ -150,10 +150,14 @@ bool odx_is_joy_axis_pressed (int index, int axis, int dir) {
         js_joysticks[index].is_axis_right(axis);
 }
 
+int odx_joy_axis_value (int player, int axis, int levels) {
+    return (js_joysticks[player].axis(axis) * levels) / 32767;
+}
+
 /* return a value in the range -128 .. 128 (yes, 128, not 127) */
 void osd_analogjoy_read(int player, int *analog_x, int *analog_y)
 {
     if(player >= NUM_JOYSTICKS) return;  
-	*analog_x = js_joysticks[player].axis(0) / 256;
-	*analog_y = js_joysticks[player].axis(0) / 256;
+	*analog_x = odx_joy_axis_value(player, 0, 128);
+	*analog_y = odx_joy_axis_value(player, 1, 128);
 }

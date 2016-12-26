@@ -65,7 +65,7 @@ extern bool odx_is_joy_button_pressed(int index, int button);
 extern bool odx_is_joy_axis_pressed (int index, int axis, int dir);
 extern void odx_poll_joysticks();
 extern bool odx_is_joy_pressed_by_standardcode(int standardcode);
-
+extern int odx_joy_axis_value (int player, int axis, int levels);
 extern unsigned int odx_joystick_press();
 
 
