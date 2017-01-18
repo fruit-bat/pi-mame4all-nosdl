@@ -86,7 +86,7 @@ void odx_sound_play(
 		if(frames_free_in_alsa > 4096) {
 			odx_video_regulator += 2;
 		}
-//printf("ALSA Wants %d and we have %d\n", frames_free_in_alsa, frames_to_write);	
+
 		int err;
 		int f;
 		if((frames_free_in_alsa < 0) || (frames_free_in_alsa >= frames_to_write)){
@@ -107,7 +107,7 @@ void odx_sound_play(
 		
 		if(frames_to_write == 0) break;
 		
-		usleep(5000);
+		usleep(1000);
 		
 		p += f;
 		if(odx_sound_stereo) p += f;

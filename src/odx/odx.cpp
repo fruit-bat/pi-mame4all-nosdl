@@ -87,6 +87,11 @@ int main (int main_argc, char **main_argv)
 	int res, i, j = 0, game_index;
    	char *playbackname = NULL;
 	int use_fame=0;
+    int use_cyclone=0;
+    int use_drz80_save=0;
+   	int use_drz80_snd_save=1;
+    int use_drz80=0;
+   	int use_drz80_snd=0;	
     bool fullscreen=false;
     bool frontend=false;
    	extern int video_scale;
@@ -104,8 +109,14 @@ int main (int main_argc, char **main_argv)
 	{
 		if (strcasecmp(main_argv[i],"-log") == 0)
 			errorlog = fopen("error.log","wa");
+		if (strcasecmp(main_argv[i],"-cyclone") == 0)
+			use_cyclone=1;
 		if (strcasecmp(main_argv[i],"-fame") == 0)
 			use_fame=1;
+		if (strcasecmp(main_argv[i],"-drz80") == 0)
+			use_drz80_save=1;
+		if (strcasecmp(main_argv[i],"-nodrz80_snd") == 0)
+			use_drz80_snd_save=0;			
 		if (strcasecmp(main_argv[i],"-horizscale") == 0)
 			video_scale=1;
 		if (strcasecmp(main_argv[i],"-halfscale") == 0)
@@ -302,6 +313,7 @@ int main (int main_argc, char **main_argv)
 	#ifdef HAS_FAME
 		if (use_fame) 
 		{
+		printf("Using FAME 68000 ASM core\n");
 			for (i=0;i<MAX_CPU;i++)
 			{
 				int *type=(int*)&(drivers[game_index]->drv->cpu[i].cpu_type);
@@ -316,7 +328,70 @@ int main (int main_argc, char **main_argv)
 			}
 		}
 	#endif
+	/* Replace M68000 by CYCLONE */
+#if HAS_CYCLONE == 1
+	if (use_cyclone)
+	{
+		printf("Using cyclone 68000 ASM core\n");
+		for (i=0;i<MAX_CPU;i++)
+		{
+			int *type=(int*)&(drivers[game_index]->drv->cpu[i].cpu_type);
+			if (((*type)&0xff)==CPU_M68000 || ((*type)&0xff)==CPU_M68010 )
+			{
+				*type=((*type)&(~0xff))|CPU_CYCLONE;
+			}
+		}
+	}
+#endif
+	use_drz80_snd = use_drz80_snd_save;
+	use_drz80 = use_drz80_save;	
 
+	// Do not use the DrZ80 core for games that are listed as not compatible
+	// in the frontend list
+	/*
+	for (i=0;i<NUMGAMES;i++)
+ 	{
+		if (strcmp(drivers[game_index]->name,fe_drivers[i].name)==0)
+		{
+			// ASM cores: 0=None,1=Cyclone,2=DrZ80,3=Cyclone+DrZ80,4=DrZ80(snd),5=Cyclone+DrZ80(snd) 
+			if(fe_drivers[i].cores == 0 || fe_drivers[i].cores == 1) 
+			{
+				use_drz80_snd=0;
+				use_drz80=0;
+				break;
+			}
+		}
+	}
+*/
+#if (HAS_DRZ80)
+	/* Replace Z80 by DRZ80 */
+	if (use_drz80)
+	{
+		printf("Using DRZ80 ASM core\n");
+		for (i=0;i<MAX_CPU;i++)
+		{
+			int *type=(int*)&(drivers[game_index]->drv->cpu[i].cpu_type);
+			if (((*type)&0xff)==CPU_Z80)
+			{
+				*type=((*type)&(~0xff))|CPU_DRZ80;
+			}
+		}
+	}
+
+	/* Replace Z80 with DRZ80 only for sound CPUs */
+	if (use_drz80_snd)
+	{
+		printf("Using DRZ80 sound ASM core\n");
+		for (i=0;i<MAX_CPU;i++)
+		{
+			int *type=(int*)&(drivers[game_index]->drv->cpu[i].cpu_type);
+			if ((((*type)&0xff)==CPU_Z80) && ((*type)&CPU_AUDIO_CPU))
+			{
+				*type=((*type)&(~0xff))|CPU_DRZ80;
+			}
+		}
+	}
+#endif
 		/*
 			for (i=0;i<MAX_CPU;i++)
 			{

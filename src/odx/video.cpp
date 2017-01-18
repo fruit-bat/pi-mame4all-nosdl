@@ -863,10 +863,14 @@ void osd_update_video_and_audio(struct osd_bitmap *bitmap)
 			profiler_mark(PROFILER_IDLE);
             {
 				static TICKER last = ticker();
+				static long acc = 0;
                 curr = ticker();
-                long delay = ((TICKS_PER_SEC * 10) / (video_fps * 12)) - (curr - last);
-                if(delay > 0) usleep(delay);
-				last = ticker();
+                long delay = ((TICKS_PER_SEC * 1000) / (video_fps * 1000)) - (curr - last);
+                acc += delay;
+                acc = acc *80 / 100;
+//printf("delay %ld acc %ld\n", delay, acc);                
+              if(acc > 0) usleep(80 * acc / 100);
+				last = curr;
 			}  
       /*
 			if (video_sync)

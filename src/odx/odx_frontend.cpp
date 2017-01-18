@@ -445,8 +445,8 @@ static int show_options(char *game)
 		y_Pos += 10;
 		switch (odx_cpu_cores)
 		{
-			case 0: odx_gamelist_text_out(x_Pos,y_Pos, "CPU FAST cores None"); break;
-			case 1: odx_gamelist_text_out(x_Pos,y_Pos, "CPU FAST cores Fame"); break;
+			case 0: odx_gamelist_text_out(x_Pos,y_Pos, "CPU FAST cores Off"); break;
+			case 1: odx_gamelist_text_out(x_Pos,y_Pos, "CPU FAST cores On"); break;
 			default:odx_gamelist_text_out(x_Pos,y_Pos, "CPU FAST cores None"); odx_cpu_cores = 0; break;
 		}
 
@@ -788,13 +788,18 @@ void execute_game (char *playemu, char *playgame, int *argc, char ***argv)
 		sprintf(str[i],"%d",100-odx_clock_sound);
 		args[n]=str[i]; i++; n++;
 	}
-	
-	/* odx_cpu_cores */
+	if ((odx_cpu_cores==1) )
+	{
+		args[n]="-cyclone"; n++;
+		args[n]="-drz80"; n++;
+		args[n]="-drz80_snd"; n++;
+	}	
+	/* odx_cpu_cores */	
+#if 0	
 	if ((odx_cpu_cores==1) )
 	{
 		args[n]="-fame"; n++;
 	}
-#if 0	
 	if ((odx_cpu_cores==1) || (odx_cpu_cores==3) || (odx_cpu_cores==5))
 	{
 		args[n]="-cyclone"; n++;

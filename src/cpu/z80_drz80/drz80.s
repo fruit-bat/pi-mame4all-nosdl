@@ -1337,7 +1337,7 @@ DoInterrupt_end:
 
 .data
 .align 4
-         
+
 AF_Z80:  .byte (0<<Z80_CFlag)|(0<<Z80_NFlag)|(0<<Z80_VFlag)|(0<<Z80_HFlag)|(0<<Z80_ZFlag)|(0<<Z80_SFlag) ;@ 0
          .byte (0<<Z80_CFlag)|(0<<Z80_NFlag)|(1<<Z80_VFlag)|(0<<Z80_HFlag)|(0<<Z80_ZFlag)|(0<<Z80_SFlag) ;@ 1
          .byte (1<<Z80_CFlag)|(0<<Z80_NFlag)|(0<<Z80_VFlag)|(0<<Z80_HFlag)|(0<<Z80_ZFlag)|(0<<Z80_SFlag) ;@ 2
@@ -2031,9 +2031,13 @@ opcode_0_7:
 ;@EX AF,AF'
 opcode_0_8:
 	add r1,cpucontext,#z80a2
-	swp z80a,z80a,[r1]
+	ldr r0,[r1]
+	str z80a,[r1]
+	mov z80a,r0
 	add r1,cpucontext,#z80f2
-	swp z80f,z80f,[r1]
+	ldr r0,[r1]
+	str z80f,[r1]
+	mov z80f,r0
 	fetch 4
 ;@ADD HL,BC
 opcode_0_9:
@@ -2203,30 +2207,30 @@ opcode_2_6:
 	fetch 7
 	
 ;@DAA - thanks to FluBBa for this code which avoids a large lookup table
-opcode_2_7: 
-   mov r0,#0x60000000 
+opcode_2_7:
+    mov r0,#0x60000000 
 
-   adds r1,r0,z80a,ror#28         ;@check low nybble and save top nybble for H check 
-   tstcc z80f,z80f,lsr#5         ;@HFlag to carry. 
-   orrcs r0,r0,#0x06000000 
+    adds r1,r0,z80a,ror#28        ;@check low nybble and save top nybble for H check 
+    tstcc z80f,z80f,lsr#5         ;@HFlag to carry. 
+    orrcs r0,r0,#0x06000000 
 
-   cmn z80a,#0x66000000 
-   tstcc z80f,z80f,lsr#2         ;@CFlag to carry. 
-   biccc r0,r0,#0x60000000 
+    cmn z80a,#0x66000000 
+    tstcc z80f,z80f,lsr#2         ;@CFlag to carry. 
+    biccc r0,r0,#0x60000000 
 
-   ands z80f,z80f,#1<<NFlag      ;@check if last instruction was add or sub. 
-   orrcs z80f,z80f,#1<<CFlag      ;@the ands doesn't change carry as long as it doesn't have to shift the imidiate value. 
+    ands z80f,z80f,#1<<NFlag      ;@check if last instruction was add or sub. 
+    orrcs z80f,z80f,#1<<CFlag     ;@the ands doesn't change carry as long as it doesn't have to shift the imidiate value. 
 
-   rsbne r0,r0,#0 
-   add z80a,z80a,r0 
-   sub r2,opcodes,#0x100         ;@pzst table 
-   ldrb r2,[r2,z80a,lsr#24]      ;@get PZS 
-   orr z80f,z80f,r2 
-   eor r1,r1,z80a,ror#28 
-   tst r1,#0x1 
-   orrne z80f,z80f,#1<<HFlag 
-   fetch 4
-   
+    rsbne r0,r0,#0 
+    add z80a,z80a,r0 
+    sub r2,opcodes,#0x100         ;@pzst table 
+    ldrb r2,[r2,z80a,lsr#24]      ;@get PZS 
+    orr z80f,z80f,r2 
+    eor r1,r1,z80a,ror#28 
+    tst r1,#0x1 
+    orrne z80f,z80f,#1<<HFlag 
+    fetch 4
+
 ;@JR Z,$+2
 opcode_2_8:
 	tst z80f,#1<<ZFlag
@@ -3097,11 +3101,17 @@ opcode_D_8:
 ;@EXX
 opcode_D_9:
 	add r1,cpucontext,#z80bc2
-	swp z80bc,z80bc,[r1]
+	ldr r0,[r1]
+	str z80bc,[r1]
+	mov z80bc,r0    
 	add r1,cpucontext,#z80de2
-	swp z80de,z80de,[r1]
+	ldr r0,[r1]
+	str z80de,[r1]
+	mov z80de,r0     
 	add r1,cpucontext,#z80hl2
-	swp z80hl,z80hl,[r1]
+	ldr r0,[r1]
+	str z80hl,[r1]
+	mov z80hl,r0      
 	fetch 4
 ;@JP C,$+3
 opcode_D_A:
