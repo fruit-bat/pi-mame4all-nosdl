@@ -336,6 +336,7 @@ int frontend_help (int argc, char **argv)
 	int verify = 0;
 	int ident = 0;
 	int help = 1;    /* by default is TRUE */
+	int frontend = 0;
 	char gamename[9];
 
 	/* covert '/' in '-' */
@@ -380,6 +381,7 @@ int frontend_help (int argc, char **argv)
 		if (!strcasecmp(argv[i],"-wrongorientation")) list = LIST_WRONGORIENTATION;
 		if (!strcasecmp(argv[i],"-wrongfps")) list = LIST_WRONGFPS;
 		if (!strcasecmp(argv[i],"-noclones")) listclones = 0;
+		if (!strcasecmp(argv[i],"-frontend")) frontend = 1;
 		#ifdef MESS
 				if (!strcasecmp(argv[i],"-listdevices"))  list = LIST_MESSINFO;
 				if (!strcasecmp(argv[i],"-listtext")) list = LIST_MESSINFO;
@@ -403,7 +405,7 @@ int frontend_help (int argc, char **argv)
 		}
 	}
 
-	if ((strlen(gamename)> 0) || list || verify) help = 0;
+	if ((strlen(gamename)> 0) || list || verify || frontend) help = 0;
 
 	for (i = 1;i < argc;i++)
 	{

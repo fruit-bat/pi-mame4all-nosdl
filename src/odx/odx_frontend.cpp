@@ -664,9 +664,7 @@ void execute_game (char *playemu, char *playgame, int *argc, char ***argv)
 	/*args[n]="-clock"; n++;
 	sprintf(str[i],"%d",odx_freq);
 	args[n]=str[i]; i++; n++;*/
-
-    args[n]="-frontend"; n++;
-    
+   
     if(fullscreen) 
     {
  		args[n]="-fullscreen"; n++;
@@ -788,11 +786,12 @@ void execute_game (char *playemu, char *playgame, int *argc, char ***argv)
 		sprintf(str[i],"%d",100-odx_clock_sound);
 		args[n]=str[i]; i++; n++;
 	}
+	
 	if ((odx_cpu_cores==1) )
 	{
 		args[n]="-cyclone"; n++;
 		args[n]="-drz80"; n++;
-		args[n]="-drz80_snd"; n++;
+		args[n]="-nodrz80_snd"; n++;
 	}	
 	/* odx_cpu_cores */	
 #if 0	

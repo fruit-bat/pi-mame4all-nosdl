@@ -109,14 +109,6 @@ int main (int main_argc, char **main_argv)
 	{
 		if (strcasecmp(main_argv[i],"-log") == 0)
 			errorlog = fopen("error.log","wa");
-		if (strcasecmp(main_argv[i],"-cyclone") == 0)
-			use_cyclone=1;
-		if (strcasecmp(main_argv[i],"-fame") == 0)
-			use_fame=1;
-		if (strcasecmp(main_argv[i],"-drz80") == 0)
-			use_drz80_save=1;
-		if (strcasecmp(main_argv[i],"-nodrz80_snd") == 0)
-			use_drz80_snd_save=0;			
 		if (strcasecmp(main_argv[i],"-horizscale") == 0)
 			video_scale=1;
 		if (strcasecmp(main_argv[i],"-halfscale") == 0)
@@ -145,29 +137,40 @@ int main (int main_argc, char **main_argv)
         }
 	}
 
-	/* Initialization */
-	odx_init(1000,16,44100,16,0,60,fullscreen);
 
 	/* check for frontend options */
-	res = frontend_help (main_argc, main_argv);
+	res = frontend ? 1234 : frontend_help (main_argc, main_argv);
 	
 	int argc = main_argc;
 	char **argv = main_argv;
 	
 	/* if frontend options were used, return to DOS with the error code */
-	if (res != 1234)
+	if (res == 1234)
 	{
+		/* Initialization */
+		odx_init(1000,16,44100,16,0,60,fullscreen);
 		printf("Trying frontend_main frontend=%d res = %d\n", frontend, res);
+		
 		if(frontend) {
 			frontend_main(main_argc, main_argv, &argc, &argv, true);
 		}
-		else {
-			odx_deinit();
-			exit(res);
-		}
+	}
+	else {
+		exit(0);
 	}
 
 	while(true) {
+		for (i = 1;i < argc;i++)
+		{
+			if (strcasecmp(argv[i],"-cyclone") == 0)
+				use_cyclone=1;
+			if (strcasecmp(argv[i],"-fame") == 0)
+				use_fame=1;
+			if (strcasecmp(argv[i],"-drz80") == 0)
+				use_drz80_save=1;
+			if (strcasecmp(argv[i],"-nodrz80_snd") == 0)
+				use_drz80_snd_save=0;				
+		}
 		game_index = -1;
 		
 		/* handle playback which is not available in mame.cfg */
@@ -371,7 +374,7 @@ int main (int main_argc, char **main_argv)
 		for (i=0;i<MAX_CPU;i++)
 		{
 			int *type=(int*)&(drivers[game_index]->drv->cpu[i].cpu_type);
-			if (((*type)&0xff)==CPU_Z80)
+			if (((*type)&0xff)==CPU_Z80 && !((*type)&CPU_AUDIO_CPU))
 			{
 				*type=((*type)&(~0xff))|CPU_DRZ80;
 			}
