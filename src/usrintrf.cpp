@@ -2062,10 +2062,6 @@ int showcopyright(struct osd_bitmap *bitmap)
 
 static int displaygameinfo(struct osd_bitmap *bitmap,int selected)
 {
-#ifndef SHOW_GAMEINFO
-  return 0;
-#endif
-  
 	int i;
 	char buf[2048];
 	char buf2[32];
