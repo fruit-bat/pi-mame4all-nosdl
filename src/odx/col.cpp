@@ -1,6 +1,6 @@
 #include <bcm_host.h>
 #include <assert.h>
-
+#include <pthread.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <stdio.h>
@@ -16,6 +16,7 @@ DISPMANX_UPDATE_HANDLE_T dispman_update;
 
 EGLDisplay display = NULL;
 EGLSurface surface = NULL;
+pthread_mutex_t vsync_mutex;
 
 static COL_Renderer *col_renderer = NULL;
 #define RU32(X) (((X)+31)&~0x1f)
@@ -52,6 +53,7 @@ vsync_callback(
     void *arg)
 {
     if(col_renderer) {
+        pthread_mutex_unlock(&vsync_mutex);
         COL_Texture *const texture = col_renderer->texture; 
         if(texture) {
             int buffer_index = (texture->current_buffer+texture->buffer_count-1)%texture->buffer_count;
@@ -79,6 +81,7 @@ vsync_callback(
 static
 void COL_TexturePresent(COL_Texture *const texture) {
   texture->current_buffer = (texture->current_buffer+1)%texture->buffer_count;
+  pthread_mutex_lock(&vsync_mutex); 
 }
 
 static
@@ -100,9 +103,9 @@ void COL_TextureClear(COL_Texture *const texture) {
 }
 
 void COL_updateWindowPosition(COL_Renderer * renderer, const int x, const unsigned int y, const unsigned int w, const int h) {
-
+    
 	printf("COL_updateWindowPosition\n");
-
+    
 	VC_RECT_T dst_rect;
 	
 	dispman_update = vc_dispmanx_update_start( 0 );
@@ -268,6 +271,7 @@ COL_DestroyRenderer(COL_Renderer * renderer)
 		printf("bcm_host_deinit\n");
 		bcm_host_deinit();
 		free(renderer);
+        pthread_mutex_destroy(&vsync_mutex);
 	}
 }
 
@@ -285,6 +289,8 @@ COL_Renderer *COL_CreateRenderer()
   col_renderer->texture = NULL;
   
   dispman_display = vc_dispmanx_display_open( 0 );
+  
+  pthread_mutex_init(&vsync_mutex, NULL);
   
   if(dispman_display == 0) {
      printf("failed vc_dispmanx_display_open\n"); 

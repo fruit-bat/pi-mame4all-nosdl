@@ -869,7 +869,7 @@ void osd_update_video_and_audio(struct osd_bitmap *bitmap)
                 acc += delay;
                 acc = acc *80 / 100;
 //printf("delay %ld acc %ld\n", delay, acc);                
-              if(acc > 0) usleep(80 * acc / 100);
+              //if(acc > 0) usleep(80 * acc / 100);
 				last = curr;
 			}  
       /*
