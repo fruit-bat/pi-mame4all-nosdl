@@ -8,31 +8,16 @@
 
 #define ELEMENT_CHANGE_DEST_RECT      (1<<2)
 
-// create two resources for 'page flipping'
 static DISPMANX_RESOURCE_HANDLE_T   resource0;
-static DISPMANX_RESOURCE_HANDLE_T   resource1;
-static DISPMANX_RESOURCE_HANDLE_T   resource_bg;
-
-// these are used for switching between the buffers
-static DISPMANX_RESOURCE_HANDLE_T cur_res;
-static DISPMANX_RESOURCE_HANDLE_T prev_res;
-static DISPMANX_RESOURCE_HANDLE_T tmp_res;
 
 DISPMANX_ELEMENT_HANDLE_T dispman_element;
-DISPMANX_ELEMENT_HANDLE_T dispman_element_bg;
 DISPMANX_DISPLAY_HANDLE_T dispman_display;
 DISPMANX_UPDATE_HANDLE_T dispman_update;
 
-void gles2_create(int display_width, int display_height, int bitmap_width, int bitmap_height, int depth);
-void gles2_destroy();
-void gles2_palette_changed();
-void gles2_draw(void *screen, int width, int height, int depth);
-
 EGLDisplay display = NULL;
 EGLSurface surface = NULL;
-static EGLContext context = NULL;
-static EGL_DISPMANX_WINDOW_T nativewindow;
 
+static COL_Renderer *col_renderer = NULL;
 #define RU32(X) (((X)+31)&~0x1f)
 
 static
@@ -61,35 +46,38 @@ void COL_TextureFree(COL_Texture *const texture) {
   free(texture);
 }
 
+void
+vsync_callback(
+    DISPMANX_UPDATE_HANDLE_T update,
+    void *arg)
+{
+    if(col_renderer) {
+        COL_Texture *const texture = col_renderer->texture; 
+        if(texture) {
+            int buffer_index = (texture->current_buffer+texture->buffer_count-1)%texture->buffer_count;
+            uint8_t *const buffer = texture->buffers[buffer_index];
+            
+            int surface_width = RU32(texture->w);
+            int surface_height = texture->h;
+
+            VC_RECT_T dst_rect;
+
+            vc_dispmanx_rect_set( &dst_rect, 0, 0, surface_width, surface_height );
+
+            vc_dispmanx_resource_write_data( 
+                 resource0,
+                 VC_IMAGE_ARGB8888, 
+                 surface_width*4,
+                 buffer,
+                 &dst_rect );
+                 
+            vc_dispmanx_element_change_source( dispman_update, dispman_element, resource0 );
+        }
+    }
+}
+
 static
 void COL_TexturePresent(COL_Texture *const texture) {
-	uint8_t *const buffer = texture->buffers[texture->current_buffer];
-
-
-	int surface_width = RU32(texture->w);
-	int surface_height = texture->h;
-
-  	VC_RECT_T dst_rect;
-
-	vc_dispmanx_rect_set( &dst_rect, 0, 0, surface_width, surface_height );
-
-	vc_dispmanx_resource_write_data( 
-		 cur_res,
-		 VC_IMAGE_ARGB8888, 
-		 surface_width*4,
-		 buffer,
-		 &dst_rect );
-		 
-	dispman_update = vc_dispmanx_update_start( 0 );
-	vc_dispmanx_element_change_source( dispman_update, dispman_element, cur_res );
-	vc_dispmanx_update_submit( dispman_update, 0, 0 );
-
-	// swap current resource
-	tmp_res = cur_res;
-	cur_res = prev_res;
-	prev_res = tmp_res;
-  
-  
   texture->current_buffer = (texture->current_buffer+1)%texture->buffer_count;
 }
 
@@ -144,11 +132,7 @@ void COL_RendererClear(COL_Renderer *const renderer) {
 }
 
 void COL_TextureFlush(COL_Texture *const texture){
-//  ve_flush_cache(COL_TextureGetPixels(texture), texture->buffer_size);
 }
-
-static uint32_t display_adj_width, display_adj_height;		//display size minus border
-
 
 int
 COL_CreateTexture(COL_Renderer * renderer, 
@@ -165,20 +149,11 @@ COL_CreateTexture(COL_Renderer * renderer,
 	VC_RECT_T dst_rect;
 	VC_RECT_T src_rect; 
   
- // 	graphics_get_display_size(0 /* LCD */, &display_width, &display_height);
-    
-	dispman_display = vc_dispmanx_display_open( 0 );
-	assert( dispman_display != 0 );
-        
-	// Add border around bitmap for TV
-//	display_width -= options.display_border * 2;
-//	display_height -= options.display_border * 2;
-    
-	//Create two surfaces for flipping between
+    vc_dispmanx_vsync_callback(dispman_display, vsync_callback, NULL);
+          
 	//Make sure bitmap type matches the source for better performance
 	uint32_t crap;
 	resource0 = vc_dispmanx_resource_create(VC_IMAGE_ARGB8888, RU32(tw), th, &crap);
-	resource1 = vc_dispmanx_resource_create(VC_IMAGE_ARGB8888, RU32(tw), th, &crap);
     
 	vc_dispmanx_rect_set( 
 		&dst_rect, 
@@ -205,19 +180,7 @@ COL_CreateTexture(COL_Renderer * renderer,
                                               (DISPMANX_TRANSFORM_T) 0 );
     
 	vc_dispmanx_update_submit_sync( dispman_update );
-    
-	// setup swapping of double buffers
-	cur_res = resource1;
-	prev_res = resource0;
-  
-  
-  
-  
-  
-  
-//  gles2_create(w, h, tw, th, 32);
-//	disp_set_para(ve_virt2phys(COL_TextureGetPixels(col_texture)), 0,	COLOR_ARGB8888, tw, th, 0, 0, tw, th, x, y, w, h);
-
+ 
   if( renderer->texture) {  
     COL_TextureFree( renderer->texture);
   }
@@ -272,27 +235,21 @@ COL_DestroyTexture(COL_Renderer * renderer)
 {
   COL_Texture *const col_texture = renderer->texture;
   if(col_texture != NULL) {  
+    renderer->texture = 0;
+    
 	int ret;
 	printf("Shuting down dispmanx\n");
+    vc_dispmanx_vsync_callback(dispman_display, NULL, NULL);
 	dispman_update = vc_dispmanx_update_start( 0 );
 	ret = vc_dispmanx_element_remove( dispman_update, dispman_element );
-	ret = vc_dispmanx_element_remove( dispman_update, dispman_element_bg );
 	ret = vc_dispmanx_update_submit_sync( dispman_update );
 	dispman_update = vc_dispmanx_update_start( 0 );
 	ret = vc_dispmanx_resource_delete( resource0 );
 	assert(ret == 0);
-	ret = vc_dispmanx_resource_delete( resource1 );
-	assert(ret == 0);
-//	ret = vc_dispmanx_resource_delete( resource_bg );
-	assert(ret == 0);
-	ret = vc_dispmanx_display_close( dispman_display );
-	assert(ret == 0);
 	ret = vc_dispmanx_update_submit_sync( dispman_update );
 	assert(ret == 0);
 
-
     COL_TextureFree(col_texture);
-    renderer->texture = 0;
   }
 }
 
@@ -303,6 +260,11 @@ COL_DestroyRenderer(COL_Renderer * renderer)
 
     COL_DestroyTexture(renderer);
 	if(renderer) {
+        
+		printf("vc_dispmanx_display_close\n");
+        vc_dispmanx_display_close( dispman_display );
+        dispman_display = 0;
+        
 		printf("bcm_host_deinit\n");
 		bcm_host_deinit();
 		free(renderer);
@@ -311,19 +273,25 @@ COL_DestroyRenderer(COL_Renderer * renderer)
 
 COL_Renderer *COL_CreateRenderer()
 {
-    //Initialise dispmanx
-    bcm_host_init();
+  //Initialise dispmanx
+  bcm_host_init();
 
-  COL_Renderer *col_renderer;
-  
   col_renderer = (COL_Renderer *) calloc(1, sizeof(*col_renderer));
   
   if(!col_renderer) {
       bcm_host_deinit();
       return NULL;    
   }
-
   col_renderer->texture = NULL;
-
+  
+  dispman_display = vc_dispmanx_display_open( 0 );
+  
+  if(dispman_display == 0) {
+     printf("failed vc_dispmanx_display_open\n"); 
+     bcm_host_deinit();
+     free(col_renderer);
+     return NULL;    
+  }
+  
   return col_renderer;
 }  
