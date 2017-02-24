@@ -35,17 +35,17 @@ void odx_set_alsa_volume(long volume)
     snd_mixer_selem_id_set_index(sid, 0);
     snd_mixer_selem_id_set_name(sid, selem_name);
     snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
-    
-    if(!initialised) {
-        initialised = true;
-        long l, r;
-        snd_mixer_selem_get_playback_dB(elem, SND_MIXER_SCHN_FRONT_LEFT, &l);
-        snd_mixer_selem_get_playback_dB(elem, SND_MIXER_SCHN_FRONT_RIGHT, &r);
-        max = (l + r) / 2;
-        min = -8000;
-    }    
-    
-    if(elem) {
+    if(elem) {  
+        
+        if(!initialised) {
+            initialised = true;
+            long l, r;
+            snd_mixer_selem_get_playback_dB(elem, SND_MIXER_SCHN_FRONT_LEFT, &l);
+            snd_mixer_selem_get_playback_dB(elem, SND_MIXER_SCHN_FRONT_RIGHT, &r);
+            max = (l + r) / 2L;
+            min = -8000;
+        }    
+
 		long range = max - min;
 		long scaled = (volume * range) / 100;
 		long offset = min + scaled;
@@ -223,7 +223,7 @@ bool odx_sound_thread_start(void)
         }
 	}
     
-	int actual_rate = odx_sound_rate;
+	unsigned int actual_rate = odx_sound_rate;
 	if ((err = snd_pcm_hw_params_set_rate_near (playback_handle, hw_params, &actual_rate, 0)) < 0) {
 		fprintf (stderr, "cannot set sample rate (%s)\n",
 			 snd_strerror (err));

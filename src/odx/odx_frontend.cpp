@@ -25,8 +25,8 @@ static bool fullscreen=false;
 
 int game_num_avail=0;
 static int last_game_selected=0;
-char playemu[16] = "mame\0";
-char playgame[16] = "builtinn\0";
+char playemu[] = "mame";
+char playgame[] = "builtinn";
 
 char mamedir[512];
 
@@ -362,7 +362,8 @@ static int show_options(char *game)
 		odx_gamelist_text_out( 264,2,frontend_build_version);
 
 		/* Draw the options */
-		strncpy (text,game_list_description(last_game_selected),33);
+        char *lgst = game_list_description(last_game_selected);
+		strncpy (text, lgst ? lgst : "",33);
 		text[32]='\0';
 		odx_gamelist_text_out(x_Pos,y_Pos-10,text);
 
