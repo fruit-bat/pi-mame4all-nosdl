@@ -289,7 +289,7 @@ void parse_cmdline (int argc, char **argv, int game_index)
 	options.samplerate = get_int  ("config", "samplerate", "sr", 44100);
 	if (options.samplerate < 5000) options.samplerate = 5000;
 	if (options.samplerate > 44100) options.samplerate = 44100;
-	usestereo           = get_bool ("config", "stereo",  NULL,  0);
+	usestereo           = get_bool ("config", "stereo",  NULL,  1);
 	attenuation         = get_int  ("config", "volume",  NULL,  0);
 	if (attenuation < -32) attenuation = -32;
 	if (attenuation > 0) attenuation = 0;

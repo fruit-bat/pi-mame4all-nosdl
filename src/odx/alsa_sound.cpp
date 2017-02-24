@@ -13,15 +13,18 @@ static unsigned int			odx_vol = 100;
 unsigned int			odx_sound_rate=44100;
 unsigned int			odx_sound_bits=8;
 int						odx_sound_stereo=1;
+int                     alsa_sound_stereo=0;
 
 // volume 0-100
 void odx_set_alsa_volume(long volume)
 {
-    long min, max;
+    static long min, max;
     snd_mixer_t *handle;
     snd_mixer_selem_id_t *sid;
     const char *card = "default";
-    const char *selem_name = "PCM";
+    //const char *selem_name = "PCM";
+    const char *selem_name = "Digital";
+    static bool initialised = false;
 
     snd_mixer_open(&handle, 0);
     snd_mixer_attach(handle, card);
@@ -32,15 +35,26 @@ void odx_set_alsa_volume(long volume)
     snd_mixer_selem_id_set_index(sid, 0);
     snd_mixer_selem_id_set_name(sid, selem_name);
     snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
+    
+    if(!initialised) {
+        initialised = true;
+        long l, r;
+        snd_mixer_selem_get_playback_dB(elem, SND_MIXER_SCHN_FRONT_LEFT, &l);
+        snd_mixer_selem_get_playback_dB(elem, SND_MIXER_SCHN_FRONT_RIGHT, &r);
+        max = (l + r) / 2;
+        min = -8000;
+    }    
+    
     if(elem) {
-		snd_mixer_selem_get_playback_dB_range(elem, &min, &max);
-	    min = -2000; // TODO Negative value return is way to large, so override for now
 		long range = max - min;
 		long scaled = (volume * range) / 100;
 		long offset = min + scaled;
-	  
+	  printf("mixer setting min %ld, max %ld, offset %ld\n", min, max, offset);
 		snd_mixer_selem_set_playback_dB_all(elem, offset, 1);
 	}
+    else {
+        printf("mixer not found\n");
+    }
     snd_mixer_close(handle);
 }
 
@@ -64,7 +78,7 @@ void odx_sound_volume(int vol)
  	odx_vol = vol;	
 }
 
-void odx_sound_play(
+void odx_sound_play_direct(
   void *buff, // The buffer
   int number_of_bytes     // Length of the buffer in bytes
 )
@@ -72,7 +86,7 @@ void odx_sound_play(
 	if(playback_handle == NULL) return;
 	const unsigned int target_frames = sound_buffer_size_in_frames - 8192;
 
-	int frames_to_write = number_of_bytes >> (odx_sound_stereo ? 2 : 1);
+	int frames_to_write = number_of_bytes >> (alsa_sound_stereo ? 2 : 1);
 	short *p = (short *)buff;
 	int frames_free_in_alsa;
 	while(true) {
@@ -96,7 +110,7 @@ void odx_sound_play(
 			f = frames_free_in_alsa;
 		}
 		
-		if (err = snd_pcm_writei(playback_handle, p, f) == -EPIPE) {
+		if ((err = snd_pcm_writei(playback_handle, p, f)) == -EPIPE) {
 			printf("XRUN.\n");
 			snd_pcm_prepare(playback_handle);
 		} else if (err < 0) {
@@ -110,11 +124,45 @@ void odx_sound_play(
 		usleep(1000);
 		
 		p += f;
-		if(odx_sound_stereo) p += f;
+		if(alsa_sound_stereo) p += f;
 	}	
 }
 
+void odx_sound_play_double(
+  void *buff, // The buffer
+  int number_of_bytes     // Length of the buffer in bytes
+)
+{
+    static short buffer[2048];
+	int frames_to_write = number_of_bytes >> 1;
+	short *p = (short *)buff;    
+    while(frames_to_write > 0) {
+        short *q = buffer;
+        int i = 0;
+        for(; i < frames_to_write && i < 1024; ++i) {
+            *q++ = *p;
+            *q++ = *p++;   
+        }
+        odx_sound_play_direct(buffer, i << 2);
+        frames_to_write -= i;
+    }
+}
+
+void odx_sound_play(
+  void *buff, // The buffer
+  int number_of_bytes     // Length of the buffer in bytes
+)
+{
+    if(odx_sound_stereo == alsa_sound_stereo) {
+        odx_sound_play_direct(buff, number_of_bytes);
+    }
+    else if(odx_sound_stereo == 0) {
+        odx_sound_play_double(buff, number_of_bytes);
+    }
+}
+
 void odx_sound_init(int rate, int bits, int stereo) {
+	printf("ALSA Audio init rate %d, bits %d, stereo %d\n", rate, bits, stereo);
 }
 
 bool odx_sound_thread_start(void)
@@ -162,19 +210,26 @@ bool odx_sound_thread_start(void)
 		return false;
 	}
 
+    alsa_sound_stereo = odx_sound_stereo;
+	if ((err = snd_pcm_hw_params_set_channels (playback_handle, hw_params, odx_sound_stereo ? 2: 1)) < 0) {
+		fprintf (stderr, "cannot set channel count (%s)... trying 2 instead\n",
+			 snd_strerror (err));
+        alsa_sound_stereo = 1;
+             
+        if ((err = snd_pcm_hw_params_set_channels (playback_handle, hw_params, 2)) < 0) {
+            fprintf (stderr, "cannot set channel count (%s)\n",
+                 snd_strerror (err));
+            return false;
+        }
+	}
+    
 	int actual_rate = odx_sound_rate;
 	if ((err = snd_pcm_hw_params_set_rate_near (playback_handle, hw_params, &actual_rate, 0)) < 0) {
 		fprintf (stderr, "cannot set sample rate (%s)\n",
 			 snd_strerror (err));
 		return false;
 	}
-
-	if ((err = snd_pcm_hw_params_set_channels (playback_handle, hw_params, odx_sound_stereo ? 2: 1)) < 0) {
-		fprintf (stderr, "cannot set channel count (%s)\n",
-			 snd_strerror (err));
-		return false;
-	}
-
+    
 	if ((err = snd_pcm_hw_params (playback_handle, hw_params)) < 0) {
 		fprintf (stderr, "cannot set parameters (%s)\n",
 			 snd_strerror (err));

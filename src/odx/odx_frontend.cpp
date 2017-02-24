@@ -787,12 +787,12 @@ void execute_game (char *playemu, char *playgame, int *argc, char ***argv)
 		args[n]=str[i]; i++; n++;
 	}
 	
-	if ((odx_cpu_cores==1) )
+	if (odx_cpu_cores==1)
 	{
 		args[n]="-cyclone"; n++;
 		args[n]="-drz80"; n++;
-		args[n]="-nodrz80_snd"; n++;
 	}	
+	args[n]="-nodrz80_snd"; n++;        
 	/* odx_cpu_cores */	
 #if 0	
 	if ((odx_cpu_cores==1) )
