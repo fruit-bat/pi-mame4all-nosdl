@@ -15,6 +15,15 @@ unsigned int			odx_sound_bits=8;
 int						odx_sound_stereo=1;
 int                     alsa_sound_stereo=0;
 
+static snd_mixer_elem_t* odx_get_named_mixer(
+    snd_mixer_t *handle,
+    snd_mixer_selem_id_t *sid, 
+    const char *selem_name)
+{
+    snd_mixer_selem_id_set_name(sid, selem_name);
+    return snd_mixer_find_selem(handle, sid);  
+}
+
 // volume 0-100
 void odx_set_alsa_volume(long volume)
 {
@@ -22,8 +31,6 @@ void odx_set_alsa_volume(long volume)
     snd_mixer_t *handle;
     snd_mixer_selem_id_t *sid;
     const char *card = "default";
-    //const char *selem_name = "PCM";
-    const char *selem_name = "Digital";
     static bool initialised = false;
 
     snd_mixer_open(&handle, 0);
@@ -32,9 +39,8 @@ void odx_set_alsa_volume(long volume)
     snd_mixer_load(handle);
 
     snd_mixer_selem_id_alloca(&sid);
-    snd_mixer_selem_id_set_index(sid, 0);
-    snd_mixer_selem_id_set_name(sid, selem_name);
-    snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
+    snd_mixer_elem_t* elem = odx_get_named_mixer(handle, sid, "PCM");
+    if(!elem) elem = odx_get_named_mixer(handle, sid, "Digital");
     if(elem) {  
         
         if(!initialised) {
